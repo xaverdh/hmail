@@ -20,6 +20,6 @@ executable hmail
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.9 && <4.10, connection >=0.2 && <0.3, text >=1.2 && <1.3, data-default >=0.7 && <0.8, bytestring >=0.10 && <0.11, stm >=2.4 && <2.5, attoparsec >=0.13 && <0.14, word8 >=0.1 && <0.2, random >=1.1 && <1.2, exceptions >=0.8 && <0.9, containers >=0.5 && <0.6, network >=2.6 && <2.7, transformers >=0.5 && <0.6, mtl >=2.2 && <2.3, QuickCheck >=2.9 && <2.10
-  build-depends:       lens, extra, HaskellNet, HaskellNet-SSL, libnotify, brick, vty, transformers-base, mime, text-icu
+  build-depends:       lens, extra, HaskellNet, HaskellNet-SSL, libnotify, brick, vty, transformers-base, mime, text-icu, vector
   -- hs-source-dirs:      
   default-language:    Haskell2010

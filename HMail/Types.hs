@@ -43,17 +43,19 @@ data Command =
   | FetchMetas MailboxName
   | ListMailBoxes
 
+
 data View n = 
   MailBoxesView {
-      _boxesViewList :: List n MailBox
+      _boxesViewList :: List n MailboxName
     }
   | MailBoxView { 
-      _boxView :: MailboxName
+      _boxViewName :: MailboxName
      ,_boxViewList :: List n MailMeta
     }
   | MailView { 
       _mailViewUid :: UID
     }
+
 
 data MailBox = MailBox {
     _mails :: M.Map UID Mail
@@ -61,7 +63,10 @@ data MailBox = MailBox {
   } deriving (Eq,Show)
 
 
-data ResName = MainViewport
+data ResName = 
+  ResMainViewport
+  | ResMailBoxList
+  | ResBoxesList
   deriving (Eq,Ord,Show)
 
 makeLenses ''ImapInit

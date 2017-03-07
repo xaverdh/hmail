@@ -40,11 +40,12 @@ handleEvent mbox lst st = \case
 draw :: MailboxName
   -> List ResName MailMeta
   -> HMailState -> Widget ResName
-draw mbox lst st = 
+draw mbox lst st =
   renderList renderMMeta True lst
   where
     renderMMeta focused meta =
-      hBox . map (txt . (<>" ")) . join
+      ( if focused then withAttr "focused" else id )
+      $ hBox . map (txt . (<>" ")) . join
       $ [ composeId (meta ^. metaUid)
          ,composeFlags (meta ^. metaFlags)
          ,composeHeader (meta ^. metaHeader)

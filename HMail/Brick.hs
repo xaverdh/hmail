@@ -45,7 +45,7 @@ application = App {
    ,appHandleEvent = handleEvent
    ,appStartEvent = startEvent
    ,appAttrMap = const $ attrMap defAttr
-    [ ("focused",bg red) ]
+    [ ("focused",defAttr `withStyle` bold) ]
   }
 
 startEvent :: HMailState -> EventM n HMailState
@@ -81,11 +81,11 @@ handleImapEvent :: HMailState
   -> ImapEvent -> EventM ResName (Next HMailState)
 handleImapEvent st = \case
   ImapFetchMetas mbox metas ->
-    continue $ storeMetas mbox metas st
+    continue $ updateMailBoxView $ storeMetas mbox metas st
   ImapFetchContent mbox conts ->
     continue $ storeContents mbox conts st
   ImapListMailBoxes boxData ->
-    continue $ storeMailBoxes boxData st
+    continue $ updateBoxesView $ storeMailBoxes boxData st
   ImapError err ->
     halt $ logErr err st
 
@@ -94,10 +94,10 @@ handleKeyEvent :: HMailState
   -> EventM ResName (Next HMailState)
 handleKeyEvent st key mods =
   case key of
-    KLeft -> hScrollBy vp (-1) >> next
-    KRight -> hScrollBy vp 1 >> next
+    -- KLeft -> hScrollBy vp (-1) >> next
+    -- KRight -> hScrollBy vp 1 >> next
     KEsc -> quit
-    KChar 'r' -> invalidateCache >> next
+    KChar 'r' -> next
     KChar 'q' -> quit
 {-  KUp -> do
       if haveMod
@@ -120,18 +120,19 @@ handleKeyEvent st key mods =
     next = continue st
     quit = halt st
     
-    vp = viewportScroll MainViewport
+    vp = viewportScroll ResMainViewport
 
 
 draw :: HMailState -> [Widget ResName]
-draw st = pure $ viewport MainViewport Vertical
-  $ case st ^. activeView of
+draw st = pure $ case st ^. activeView of
   MailBoxesView lst -> BoxesView.draw lst st
   MailBoxView mbox lst -> MailBoxView.draw mbox lst st
   MailView uid -> MailView.draw uid st
 
+
 load :: Chan Command -> MailboxName -> EventM n ()
 load chan mbox =
   liftIO $ writeChan chan (FetchMetas mbox)
+  -- mark dirty !
 
 
