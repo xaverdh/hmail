@@ -84,7 +84,7 @@ handleImapEvent st = \case
   ImapFetchMetas mbox metas ->
     continue $ updateMailBoxView $ storeMetas mbox metas st
   ImapFetchContent mbox conts ->
-    continue $ storeContents mbox conts st
+    continue $ updateMailView $ storeContents mbox conts st
   ImapListMailBoxes boxData ->
     continue $ updateBoxesView $ storeMailBoxes boxData st
   ImapError err ->

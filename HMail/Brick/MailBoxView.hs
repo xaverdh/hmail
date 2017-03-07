@@ -4,6 +4,8 @@ module HMail.Brick.MailBoxView where
 import HMail.Types
 import HMail.Header
 import HMail.Brick.EvH
+import HMail.Brick.Util
+import HMail.Brick.ViewSwitching
 
 import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
@@ -21,6 +23,7 @@ import HMail.Util
 
 import Control.Lens
 import Control.Monad
+import Control.Monad.Extra
 import Control.Monad.Base
 
 import Data.Monoid
@@ -84,7 +87,6 @@ draw mbox lst st =
       Seen -> False
       _ -> True
 
-
 fmt :: Int -> T.Text
 fmt n
   | n < 0 = "bogus size"
@@ -96,6 +98,8 @@ fmt n
 
 handleKeyEvent :: List ResName MailMeta
   -> Key -> [Modifier] -> EvH ResName ()
-handleKeyEvent lst key mods = pure ()
-
+handleKeyEvent lst key mods = case key of
+  KChar 'y' -> enterBoxesView
+  KEnter -> whenJust (getSelected lst) enterMailView
+  _ -> pure ()
 

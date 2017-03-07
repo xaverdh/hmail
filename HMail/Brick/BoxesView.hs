@@ -1,10 +1,11 @@
 {-# language LambdaCase, OverloadedStrings #-}
 module HMail.Brick.BoxesView where
 
-import HMail.State
 import HMail.Types
 import HMail.Mail
 import HMail.Brick.EvH
+import HMail.Brick.Util
+import HMail.Brick.ViewSwitching
 
 import Brick.Types
 import Brick.Main
@@ -18,13 +19,6 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Base
 import Control.Monad.Extra
-import Control.Monad.IO.Class
-import Control.Monad.Reader.Class
-import Control.Concurrent.Chan
-
-import qualified Data.Vector as V
-import qualified Data.Map.Lazy as M
-
 
 handleEvent :: List ResName MailboxName
   -> BrickEvent ResName e -> EvH ResName ()
@@ -48,27 +42,8 @@ draw lst st = renderList renderMBox True lst
 
 handleKeyEvent :: List ResName MailboxName
   -> Key -> [Modifier] -> EvH ResName ()
-handleKeyEvent lst key mods = 
-  case key of
-    KEnter -> whenJust mName mEnterMailBoxView
-    _ -> pure ()
-  where
-    mName :: Maybe MailboxName
-    mName = fmap
-      (\i -> lst ^. listElementsL . ix i)
-      (lst ^. listSelectedL)
+handleKeyEvent lst key mods = case key of
+  KEnter -> whenJust (getSelected lst) enterMailBoxView
+  _ -> pure ()
 
-mEnterMailBoxView :: MailboxName -> EvH ResName ()
-mEnterMailBoxView mbox = 
-  whenJustM (use $ mailBoxes . at mbox) $ \box -> do
-    chan <- use cmdChannel
-    liftIO $ writeChan chan (FetchMetas mbox)
-    activeView .= MailBoxView mbox (newList box)
-  where
-    newList :: MailBox -> List ResName MailMeta
-    newList box = list ResMailBoxList (buildVect box) 1
-    
-    buildVect :: MailBox -> V.Vector MailMeta
-    buildVect box = view mailMeta
-      <$> box ^. mails . to (V.fromList . M.elems)
 

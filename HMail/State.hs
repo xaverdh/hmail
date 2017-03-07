@@ -59,3 +59,8 @@ updateMailBoxView st = st &
     vec = V.fromList . map (view mailMeta) . M.elems
       $ st ^. mailBoxes . ix name . mails
 
+updateMailView :: HMailState -> HMailState
+updateMailView =
+  error "not implemented yet"
+
+
