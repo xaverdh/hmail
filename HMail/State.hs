@@ -43,7 +43,6 @@ storeMailBoxes boxData = mailBoxes .~ M.fromList boxData
 logErr :: Exception e => e -> HMailState -> HMailState
 logErr err = errLog %~ (show err:)
 
-
 updateBoxesView :: HMailState -> HMailState
 updateBoxesView st = st &
   activeView . boxesViewList .~ newList

@@ -3,6 +3,7 @@ module HMail.Brick.MailView where
 
 import HMail.State
 import HMail.Types
+import HMail.Brick.EvH
 
 import Brick.Types
 import Brick.Main
@@ -13,11 +14,10 @@ import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
 
-handleEvent :: UID -> HMailState
+handleEvent :: UID
   -> BrickEvent ResName e
-  -> EventM ResName HMailState
-handleEvent uid st e =
-  pure $ st
+  -> EvH ResName ()
+handleEvent uid e = pure ()
 
 draw :: UID -> HMailState -> Widget ResName
 draw uid st = undefined

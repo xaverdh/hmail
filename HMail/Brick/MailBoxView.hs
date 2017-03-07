@@ -3,6 +3,7 @@ module HMail.Brick.MailBoxView where
 
 import HMail.Types
 import HMail.Header
+import HMail.Brick.EvH
 
 import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
@@ -20,6 +21,7 @@ import HMail.Util
 
 import Control.Lens
 import Control.Monad
+import Control.Monad.Base
 
 import Data.Monoid
 import Data.Maybe
@@ -28,13 +30,16 @@ import qualified Data.Foldable as F
 
 handleEvent :: MailboxName
   -> List ResName MailMeta
-  -> HMailState -> BrickEvent ResName e
-  -> EventM ResName HMailState
-handleEvent mbox lst st = \case
+  -> BrickEvent ResName e
+  -> EvH ResName ()
+handleEvent mbox lst = \case
   VtyEvent ev -> do
-    lst' <- handleListEvent ev lst
-    pure $ st & activeView . boxViewList .~ lst'
-  _ -> pure st
+    lst' <- liftBase $ handleListEvent ev lst
+    activeView . boxViewList .= lst'
+    case ev of
+      EvKey key mods -> handleKeyEvent lst' key mods
+      _ -> pure ()
+  _ -> pure ()
 
 
 draw :: MailboxName
@@ -88,4 +93,9 @@ fmt n
     f s (n,_) = if n < base then (n,s) else (div n base,s)
     base = 10^3
     suffixes = ["K","M","G","T"]
+
+handleKeyEvent :: List ResName MailMeta
+  -> Key -> [Modifier] -> EvH ResName ()
+handleKeyEvent lst key mods = pure ()
+
 

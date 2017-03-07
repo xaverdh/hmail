@@ -7,6 +7,7 @@ import HMail.State
 import HMail.Mail
 import HMail.Header
 import HMail.Brick.Util
+import HMail.Brick.EvH
 
 
 import qualified HMail.Brick.BoxesView as BoxesView
@@ -51,31 +52,31 @@ application = App {
 startEvent :: HMailState -> EventM n HMailState
 startEvent st = pure st
 
-
 handleEvent :: HMailState
   -> BrickEvent ResName ImapEvent
   -> EventM ResName (Next HMailState)
-handleEvent st e = do
-  st' <- handleActiveView st e
-  case e of
-    AppEvent (e::ImapEvent) ->
-      handleImapEvent st' e
-    VtyEvent (EvKey key mods) -> 
-      handleKeyEvent st' key mods
-    e -> resizeOrQuit st' e
+handleEvent st e =
+  execEvH (handleActiveView e) st
+  >>= flip handleGlobalEvent e
 
-
-handleActiveView :: HMailState
+handleGlobalEvent :: HMailState
   -> BrickEvent ResName ImapEvent
-  -> EventM ResName HMailState
-handleActiveView st e = 
-  case st ^. activeView of
-    MailBoxView mbox lst -> 
-      MailBoxView.handleEvent mbox lst st e
-    MailBoxesView lst ->
-      BoxesView.handleEvent lst st e
-    MailView uid ->
-      MailView.handleEvent uid st e
+  -> EventM ResName (Next HMailState)
+handleGlobalEvent st = \case
+  AppEvent (e::ImapEvent) ->
+    handleImapEvent st e
+  VtyEvent (EvKey key mods) -> 
+    handleKeyEvent st key mods
+  e -> resizeOrQuit st e
+
+handleActiveView :: BrickEvent ResName ImapEvent -> EvH ResName ()
+handleActiveView e = use activeView >>= \case
+  MailBoxView mbox lst -> 
+    MailBoxView.handleEvent mbox lst e
+  MailBoxesView lst ->
+    BoxesView.handleEvent lst e
+  MailView uid ->
+    MailView.handleEvent uid e
 
 handleImapEvent :: HMailState
   -> ImapEvent -> EventM ResName (Next HMailState)
@@ -128,11 +129,4 @@ draw st = pure $ case st ^. activeView of
   MailBoxesView lst -> BoxesView.draw lst st
   MailBoxView mbox lst -> MailBoxView.draw mbox lst st
   MailView uid -> MailView.draw uid st
-
-
-load :: Chan Command -> MailboxName -> EventM n ()
-load chan mbox =
-  liftIO $ writeChan chan (FetchMetas mbox)
-  -- mark dirty !
-
 
