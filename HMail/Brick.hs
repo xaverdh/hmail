@@ -1,4 +1,4 @@
-{-# language OverloadedStrings, LambdaCase #-}
+{-# language OverloadedStrings, LambdaCase, ScopedTypeVariables #-}
 module HMail.Brick where
 
 import HMail.Util
@@ -6,12 +6,15 @@ import HMail.Types
 import HMail.State
 import HMail.Mail
 import HMail.Header
+import HMail.Brick.Util
+
 
 import qualified HMail.Brick.BoxesView as BoxesView
 import qualified HMail.Brick.MailBoxView as MailBoxView
 import qualified HMail.Brick.MailView as MailView
 
 import Brick.Widgets.Core
+import Brick.Widgets.List
 import Brick.Types
 import Brick.AttrMap
 import Brick.Main
@@ -45,22 +48,34 @@ application = App {
     [ ("focused",bg red) ]
   }
 
-
 startEvent :: HMailState -> EventM n HMailState
-startEvent st = do
-  -- load (st ^. cmdChannel) "INBOX"
-  pure st
+startEvent st = pure st
 
 
 handleEvent :: HMailState
   -> BrickEvent ResName ImapEvent
   -> EventM ResName (Next HMailState)
-handleEvent st = \case
-  AppEvent e -> handleImapEvent st e
-  VtyEvent (EvKey key mods) -> 
-    handleKeyEvent st key mods
-  e -> resizeOrQuit st e
+handleEvent st e = do
+  st' <- handleActiveView st e
+  case e of
+    AppEvent (e::ImapEvent) ->
+      handleImapEvent st' e
+    VtyEvent (EvKey key mods) -> 
+      handleKeyEvent st' key mods
+    e -> resizeOrQuit st' e
 
+
+handleActiveView :: HMailState
+  -> BrickEvent ResName ImapEvent
+  -> EventM ResName HMailState
+handleActiveView st e = 
+  case st ^. activeView of
+    MailBoxView mbox lst -> 
+      MailBoxView.handleEvent mbox lst st e
+    MailBoxesView lst ->
+      BoxesView.handleEvent lst st e
+    MailView uid ->
+      MailView.handleEvent uid st e
 
 handleImapEvent :: HMailState
   -> ImapEvent -> EventM ResName (Next HMailState)
@@ -74,13 +89,17 @@ handleImapEvent st = \case
   ImapError err ->
     halt $ logErr err st
 
-
 handleKeyEvent :: HMailState
   -> Key -> [Modifier]
   -> EventM ResName (Next HMailState)
 handleKeyEvent st key mods =
   case key of
-    KUp -> do
+    KLeft -> hScrollBy vp (-1) >> next
+    KRight -> hScrollBy vp 1 >> next
+    KEsc -> quit
+    KChar 'r' -> invalidateCache >> next
+    KChar 'q' -> quit
+{-  KUp -> do
       if haveMod
         then vScrollPage vp Up
         else vScrollBy vp (-1)
@@ -90,20 +109,9 @@ handleKeyEvent st key mods =
         then vScrollPage vp Down
         else vScrollBy vp 1
       next
-    KLeft -> hScrollBy vp (-1) >> next
-    KRight -> hScrollBy vp 1 >> next
     KPageUp -> hScrollToBeginning vp >> next
-    KPageDown -> hScrollToEnd vp >> next
-    KEsc -> quit
-    KChar 'r' -> invalidateCache >> next
-    KChar 'q' -> quit
-    _ -> case st ^. activeView of
-      MailBoxView mbox -> 
-        MailBoxView.handleKeyEvent mbox st key mods
-      MailBoxesView ->
-        BoxesView.handleKeyEvent st key mods
-      MailView uid ->
-        MailView.handleKeyEvent uid st key mods
+    KPageDown -> hScrollToEnd vp >> next  -}
+    _ -> next
   where
     chan = st ^. cmdChannel
     
@@ -116,94 +124,14 @@ handleKeyEvent st key mods =
 
 
 draw :: HMailState -> [Widget ResName]
-draw st = case st ^. activeView of
-  MailBoxView mbox -> pure $ mailBoxView mbox st
-  MailBoxesView -> pure $ mailBoxesView st
-  MailView uid -> pure $ mailView uid st
-
-
-mailView :: UID -> HMailState -> Widget ResName
-mailView uid = undefined
-
-
-mailBoxesView :: HMailState -> Widget ResName
-mailBoxesView st = viewport MainViewport Both
-  . padLeftRight 5
-  $ txt "Mailboxes:" <=> lst
-  where
-    sep = replicate 2 $ txt " "
-    lst = vBox $ do
-      (name,box) <- M.toList (st ^. mailBoxes)
-      sep ++ [str name]
-
-{-
-mailBoxesView :: HMailState -> Widget ResName
-mailBoxesView st = viewport MainViewport Both
-  . padLeftRight 5
-  $ txt "Mailboxes:" <=> lst
-  where
-    sep = replicate 2 $ txt " "
-    lst = vBox $ do
-      (name,box) <- M.toList (st ^. mailBoxes)
-      sep ++ [str name]
--}
-
-mailBoxView :: MailboxName -> HMailState -> Widget ResName
-mailBoxView mbox st = viewport MainViewport Both
-  $ txt "Mails:" <=> lst
-  where
-    lst = vBox $ do
-      meta <- view mailMeta
-        <$> M.elems (st ^. mailBoxes . ix mbox . mails)
-      pure $ hBox (composeEntry meta)
-    
-    entries = ["Date","From","Subject"]
-    
-    composeEntry :: MailMeta -> [Widget ResName]
-    composeEntry meta = map (txt . (<>" ")) $ join
-      [ composeId (meta ^. metaUid)
-       ,composeFlags (meta ^. metaFlags)
-       ,composeHeader (meta ^. metaHeader)
-       ,composeSize (meta ^. metaSize) ]
-    
-    composeHeader :: Header -> [T.Text]
-    composeHeader hdr =
-      let f name = fromMaybe "" (hdr ^. headerMap . at name)
-       in map f entries
-    
-    composeSize :: Int -> [T.Text]
-    composeSize s = pure $ "(" <> fmt s <> ")"
-    
-    composeId :: UID -> [T.Text]
-    composeId = pure . showT
-    
-    composeFlags :: [Flag] -> [T.Text]
-    composeFlags = (pure .) . F.foldMap $ \case
-      Seen -> ""
-      Answered -> "r"
-      Flagged -> "f"
-      Deleted -> "D"
-      Draft -> "d"
-      Recent -> ""
-      Keyword kw -> "<" <> T.pack kw <> ">"
-
-    isNew :: MailMeta -> Bool
-    isNew meta = flip any (meta ^. metaFlags) $ \case
-      Seen -> False
-      _ -> True
-
-
-fmt :: Int -> T.Text
-fmt n 
-  | n < 0 = "bogus size"
-  | True = let (n',s) = foldr f (n,"") suffixes in showT n' <> s
-  where
-    f s (n,_) = if n < base then (n,s) else (div n base,s)
-    base = 10^3
-    suffixes = ["K","M","G","T"]
-
+draw st = pure $ viewport MainViewport Vertical
+  $ case st ^. activeView of
+  MailBoxesView lst -> BoxesView.draw lst st
+  MailBoxView mbox lst -> MailBoxView.draw mbox lst st
+  MailView uid -> MailView.draw uid st
 
 load :: Chan Command -> MailboxName -> EventM n ()
 load chan mbox =
   liftIO $ writeChan chan (FetchMetas mbox)
+
 

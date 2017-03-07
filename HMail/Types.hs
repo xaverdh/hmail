@@ -44,9 +44,16 @@ data Command =
   | ListMailBoxes
 
 data View n = 
-  MailBoxesView (List n MailBox)
-  | MailBoxView MailboxName (List n MailMeta)
-  | MailView UID
+  MailBoxesView {
+      _boxesViewList :: List n MailBox
+    }
+  | MailBoxView { 
+      _boxView :: MailboxName
+     ,_boxViewList :: List n MailMeta
+    }
+  | MailView { 
+      _mailViewUid :: UID
+    }
 
 data MailBox = MailBox {
     _mails :: M.Map UID Mail
@@ -60,5 +67,5 @@ data ResName = MainViewport
 makeLenses ''ImapInit
 makeLenses ''MailBox
 makeLenses ''HMailState
-
+makeLenses ''View
 
