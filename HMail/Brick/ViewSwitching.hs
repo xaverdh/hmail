@@ -42,7 +42,7 @@ enterBoxesView = do
   sendCommand $ ListMailBoxes
   where
     newList :: V.Vector MailboxName -> List ResName MailboxName
-    newList vec = list ResBoxesList vec 1
+    newList vec = list ResBoxesList vec 3
 
 enterMailView :: MailboxName -> Mail -> EvH ResName ()
 enterMailView mbox mail = do

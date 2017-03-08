@@ -10,7 +10,6 @@ import Control.Monad.State
 import Control.Monad.State.Class
 
 
-
 newtype EvH n a = EvH
   ( StateT HMailState (EventM n) a )
   deriving

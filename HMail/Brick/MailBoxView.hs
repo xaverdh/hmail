@@ -48,8 +48,9 @@ handleEvent mbox lst = \case
 draw :: MailboxName
   -> List ResName MailMeta
   -> HMailState -> Widget ResName
-draw mbox lst st =
-  renderList renderMMeta True lst
+draw mbox lst st = 
+  padTop (Pad 2)
+  $ renderList renderMMeta True lst
   where
     renderMMeta focused meta =
       ( if focused then withAttr "focused" else id )
