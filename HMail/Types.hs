@@ -52,8 +52,9 @@ data View n =
       _boxViewName :: MailboxName
      ,_boxViewList :: List n MailMeta
     }
-  | MailView { 
-      _mailViewUid :: UID
+  | MailView {
+     _mailViewBoxName :: MailboxName
+     ,_mailViewUid :: UID
     }
 
 

@@ -9,7 +9,6 @@ import HMail.Header
 import HMail.Brick.Util
 import HMail.Brick.EvH
 
-
 import qualified HMail.Brick.BoxesView as BoxesView
 import qualified HMail.Brick.MailBoxView as MailBoxView
 import qualified HMail.Brick.MailView as MailView
@@ -75,7 +74,7 @@ handleActiveView e = use activeView >>= \case
     MailBoxView.handleEvent mbox lst e
   MailBoxesView lst ->
     BoxesView.handleEvent lst e
-  MailView uid ->
+  MailView _ uid ->
     MailView.handleEvent uid e
 
 handleImapEvent :: HMailState
@@ -95,38 +94,18 @@ handleKeyEvent :: HMailState
   -> EventM ResName (Next HMailState)
 handleKeyEvent st key mods =
   case key of
-    -- KLeft -> hScrollBy vp (-1) >> next
-    -- KRight -> hScrollBy vp 1 >> next
     KEsc -> quit
     KChar 'r' -> next
     KChar 'q' -> quit
-{-  KUp -> do
-      if haveMod
-        then vScrollPage vp Up
-        else vScrollBy vp (-1)
-      next
-    KDown -> do
-      if haveMod
-        then vScrollPage vp Down
-        else vScrollBy vp 1
-      next
-    KPageUp -> hScrollToBeginning vp >> next
-    KPageDown -> hScrollToEnd vp >> next  -}
     _ -> next
   where
-    chan = st ^. cmdChannel
-    
-    haveMod = mods /= []
-    
     next = continue st
     quit = halt st
-    
-    vp = viewportScroll ResMainViewport
 
 
 draw :: HMailState -> [Widget ResName]
 draw st = pure $ case st ^. activeView of
   MailBoxesView lst -> BoxesView.draw lst st
   MailBoxView mbox lst -> MailBoxView.draw mbox lst st
-  MailView uid -> MailView.draw uid st
+  MailView mbox uid -> MailView.draw mbox uid st
 

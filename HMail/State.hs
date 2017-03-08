@@ -60,7 +60,6 @@ updateMailBoxView st = st &
       $ st ^. mailBoxes . ix name . mails
 
 updateMailView :: HMailState -> HMailState
-updateMailView =
-  error "not implemented yet"
+updateMailView = id
 
 

@@ -28,7 +28,6 @@ data MailContent =
   | ContentUnknown
   deriving (Eq,Show)
 
-
 data MailMeta = 
   MailMeta {
    _metaUid :: UID

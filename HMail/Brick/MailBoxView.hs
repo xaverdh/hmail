@@ -1,4 +1,4 @@
-{-# language LambdaCase, OverloadedStrings #-}
+{-# language LambdaCase, OverloadedStrings, ScopedTypeVariables #-}
 module HMail.Brick.MailBoxView where
 
 import HMail.Types
@@ -100,6 +100,10 @@ handleKeyEvent :: List ResName MailMeta
   -> Key -> [Modifier] -> EvH ResName ()
 handleKeyEvent lst key mods = case key of
   KChar 'y' -> enterBoxesView
-  KEnter -> whenJust (getSelected lst) enterMailView
+  KEnter -> whenJust ( getSelected lst ) $ \meta -> do
+    mbox <- use $ activeView . boxViewName
+    whenJustM (use $ mailBoxes . at mbox) $ \box ->
+      whenJust (box ^. mails . at (meta ^. metaUid))
+        ( enterMailView mbox )
   _ -> pure ()
 

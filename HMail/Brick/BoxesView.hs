@@ -20,6 +20,7 @@ import Control.Monad
 import Control.Monad.Base
 import Control.Monad.Extra
 
+
 handleEvent :: List ResName MailboxName
   -> BrickEvent ResName e -> EvH ResName ()
 handleEvent lst = \case
@@ -31,6 +32,13 @@ handleEvent lst = \case
       _ -> pure ()
   _ -> pure ()
 
+handleKeyEvent :: List ResName MailboxName
+  -> Key -> [Modifier] -> EvH ResName ()
+handleKeyEvent lst key mods = case key of
+  KEnter -> whenJust (getSelected lst) enterMailBoxView
+  _ -> pure ()
+
+
 draw :: List ResName MailboxName
   -> HMailState -> Widget ResName
 draw lst st = renderList renderMBox True lst
@@ -39,11 +47,4 @@ draw lst st = renderList renderMBox True lst
     renderMBox focused mbox = 
       ( if focused then withAttr "focused" else id )
       $ str mbox
-
-handleKeyEvent :: List ResName MailboxName
-  -> Key -> [Modifier] -> EvH ResName ()
-handleKeyEvent lst key mods = case key of
-  KEnter -> whenJust (getSelected lst) enterMailBoxView
-  _ -> pure ()
-
 
