@@ -33,6 +33,7 @@ import Control.Monad.IO.Class
 import Control.Concurrent
 import Data.Monoid
 import Data.Maybe
+import Data.Bifunctor
 import qualified Data.Foldable as F
 import qualified Data.Text as T
 import qualified Data.Map.Lazy as M
@@ -44,9 +45,24 @@ application = App {
    ,appChooseCursor = neverShowCursor
    ,appHandleEvent = \s e -> finaliseEventH (handleEvent e) s
    ,appStartEvent = startEvent
-   ,appAttrMap = const $ attrMap defAttr
-    [ ("focused",defAttr `withStyle` bold) ]
+   ,appAttrMap = attributes
   }
+
+attributes :: HMailState -> AttrMap
+attributes _ = attrMap defAttr
+  $ map (second ($defAttr))
+  [ "focused" & style bold
+   ,"new" & fgCol red
+   ,"header" & style bold . fgCol blue
+   ,"banner" & style bold . fgCol yellow . bgCol blue
+   ,"body" & id ]
+  where
+    infixr 1 &
+    (&) = (,)
+    style = flip withStyle
+    fgCol = flip withForeColor
+    bgCol = flip withBackColor
+
 
 startEvent :: HMailState -> EventM n HMailState
 startEvent st = pure st

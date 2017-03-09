@@ -29,6 +29,7 @@ import Control.Monad.Base
 
 import Data.Monoid
 import Data.Maybe
+import Data.Bool
 import qualified Data.Text as T
 import qualified Data.Foldable as F
 
@@ -54,13 +55,17 @@ draw mbox lst st =
   banner genericHelp
   <=> renderList renderMMeta True lst
   where
-    renderMMeta focused meta =
-      ( if focused then withAttr "focused" else id )
-      $ hBox . map (txt . (<>" ")) . join
+    renderMMeta hasFocus meta =
+      markFocused hasFocus
+      . markNew (isNew meta)
+      . hBox . map (txt . (<>" ")) . join
       $ [ composeId (meta ^. metaUid)
          ,composeFlags (meta ^. metaFlags)
          ,composeHeader (meta ^. metaHeader)
          ,composeSize (meta ^. metaSize) ]
+    
+    markFocused = bool id $ withAttr "focused"
+    markNew = bool id (withAttr "new")
     
     composeHeader :: Header -> [T.Text]
     composeHeader hdr =

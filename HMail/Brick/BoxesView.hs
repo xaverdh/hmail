@@ -48,7 +48,6 @@ handleKeyEvent lst key mods = case key of
 draw :: List ResName MailboxName
   -> HMailState -> Widget ResName
 draw lst st = 
-  -- padTop (Pad 5)
   banner genericHelp
   <=> renderList renderMBox True lst
   where

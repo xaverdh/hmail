@@ -21,8 +21,9 @@ import Control.Monad.State.Class
 storeMeta :: MonadState HMailState m
   => MailboxName -> MailMeta -> m ()
 storeMeta mbox meta = 
-  mailLens .= Just (mkEmptyMail meta)
+  mailLens %= Just . f
   where
+    f = maybe (mkEmptyMail meta) (mailMeta .~ meta)
     uid = meta ^. metaUid
     mailLens = mailBoxes . ix mbox . mails . at uid
 

@@ -1,3 +1,4 @@
+{-# language OverloadedStrings #-}
 module HMail.Brick.Banner where
 
 import Brick.Types
@@ -6,7 +7,8 @@ import Brick.Widgets.Center
 import Data.Monoid
 
 banner :: [String] -> Widget n
-banner help = str "hmail-dev" <+>
+banner help = withAttr "banner"
+  $ str "hmail-dev" <+>
   ( hCenter
     . hBox
     . map str

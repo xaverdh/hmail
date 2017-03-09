@@ -65,6 +65,7 @@ draw :: MailboxName -> UID -> Bool -> HMailState -> Widget ResName
 draw mbox uid fullHdr st = 
   (banner mailViewHelp <=>)
   . viewport ResMainViewport Both
+  . withAttr "body"
   . fromMaybe errorWidget $ do
     box <- st ^. mailBoxes . at mbox
     mail <- box ^. mails . at uid
@@ -77,9 +78,10 @@ draw mbox uid fullHdr st =
       ContentUnknown -> txt ""
 
     renderHeader :: Header -> Widget ResName
-    renderHeader =
+    renderHeader = 
       let f key val wgt = txt (key <> ":" <> val) <=> wgt
-       in M.foldrWithKey f emptyWidget
+       in withAttr "header" 
+        . M.foldrWithKey f emptyWidget
         . (if fullHdr then id else M.filterWithKey important)
         . view headerMap
     
