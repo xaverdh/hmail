@@ -48,6 +48,7 @@ application = App {
    ,appAttrMap = attributes
   }
 
+
 attributes :: HMailState -> AttrMap
 attributes _ = attrMap defAttr
   $ map (second ($defAttr))
@@ -67,9 +68,11 @@ attributes _ = attrMap defAttr
 startEvent :: HMailState -> EventM n HMailState
 startEvent st = pure st
 
+
 handleEvent :: BrickEv ImapEvent -> EvF
 handleEvent e =
   handleActiveView e >> handleGlobalEvent e
+
 
 handleGlobalEvent :: BrickEv ImapEvent -> EvF
 handleGlobalEvent = \case
@@ -79,6 +82,7 @@ handleGlobalEvent = \case
     handleKeyEvent key mods
   e -> resizeOrQuitEventH e
 
+
 handleActiveView :: BrickEv ImapEvent -> EvH ()
 handleActiveView e = use activeView >>= \case
   MailBoxView mbox lst -> 
@@ -87,6 +91,7 @@ handleActiveView e = use activeView >>= \case
     BoxesView.handleEvent lst e
   MailView _ uid _ ->
     MailView.handleEvent uid e
+
 
 handleImapEvent :: ImapEvent -> EvF
 handleImapEvent = \case
@@ -105,6 +110,7 @@ handleImapEvent = \case
   ImapError err -> do
     logErr err
     haltEventH
+
 
 handleKeyEvent :: Key -> [Modifier] -> EvF
 handleKeyEvent key mods =

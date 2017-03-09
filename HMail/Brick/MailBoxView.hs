@@ -87,7 +87,7 @@ draw mbox lst st =
       Draft -> "d"
       Recent -> ""
       Keyword kw -> "<" <> T.pack kw <> ">"
-
+    
     entries = ["Date","From","Subject"]
         
     isNew :: MailMeta -> Bool

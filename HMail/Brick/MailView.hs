@@ -12,6 +12,8 @@ import HMail.Brick.Banner
 import Brick.Types
 import Brick.Main
 import Brick.Widgets.Core
+import Brick.Widgets.Center
+import Brick.Widgets.Border
 
 import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
@@ -35,6 +37,7 @@ handleEvent uid = \case
   _ -> pure ()
 
 
+
 handleKeyEvent :: UID -> Key -> [Modifier] -> EvH ()
 handleKeyEvent uid key mods = case key of
   KUp -> liftBase $ if haveMod
@@ -45,7 +48,7 @@ handleKeyEvent uid key mods = case key of
     else vScrollBy vp 1
   KLeft -> liftBase $ if haveMod
     then hScrollBy vp (-10)
-    else hScrollBy vp (-1) 
+    else hScrollBy vp (-1)
   KRight -> liftBase $ if haveMod
     then hScrollBy vp 10
     else hScrollBy vp 1
@@ -61,21 +64,23 @@ handleKeyEvent uid key mods = case key of
     haveMod = mods /= []
     vp = viewportScroll ResMainViewport
 
+
 draw :: MailboxName -> UID -> Bool -> HMailState -> Widget ResName
 draw mbox uid fullHdr st = 
   (banner mailViewHelp <=>)
-  . viewport ResMainViewport Both
-  . withAttr "body"
   . fromMaybe errorWidget $ do
     box <- st ^. mailBoxes . at mbox
     mail <- box ^. mails . at uid
-    Just $ renderHeader (mail ^. mailMeta . metaHeader)
-      <=> renderContent (mail ^. mailContent)
+    Just $ case renderContent (mail ^. mailContent) of 
+      Nothing -> loadingWidget
+      Just cont -> viewport ResMainViewport Both
+        $ renderHeader (mail ^. mailMeta . metaHeader)
+        <=> withAttr "body" cont
   where
-    renderContent :: MailContent -> Widget ResName
+    renderContent :: MailContent -> Maybe (Widget ResName)
     renderContent = \case
-      ContentIs content -> txt content
-      ContentUnknown -> txt ""
+      ContentIs content -> Just $ txt content
+      ContentUnknown -> Nothing
 
     renderHeader :: Header -> Widget ResName
     renderHeader = 
@@ -89,7 +94,8 @@ draw mbox uid fullHdr st =
     important key _ = key `elem`
       [ "Date", "From", "Subject", "To", "User-Agent" ]
     
-    errorWidget = txt "An error ocurred – Sorry."
+    loadingWidget = center . border $ txt "LOADING..."
+    errorWidget = center . border $ txt "an ERROR ocurred – sorry"
     
 
 mailViewHelp :: [String]        
