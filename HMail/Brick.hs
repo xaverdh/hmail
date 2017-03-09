@@ -7,7 +7,7 @@ import HMail.State
 import HMail.Mail
 import HMail.Header
 import HMail.Brick.Util
-import HMail.Brick.EvH
+import HMail.Brick.EventH
 
 import qualified HMail.Brick.BoxesView as BoxesView
 import qualified HMail.Brick.MailBoxView as MailBoxView
@@ -42,7 +42,7 @@ application :: App HMailState ImapEvent ResName
 application = App {
     appDraw = draw
    ,appChooseCursor = neverShowCursor
-   ,appHandleEvent = handleEvent
+   ,appHandleEvent = \s e -> finaliseEventH (handleEvent e) s
    ,appStartEvent = startEvent
    ,appAttrMap = const $ attrMap defAttr
     [ ("focused",defAttr `withStyle` bold) ]
@@ -51,24 +51,19 @@ application = App {
 startEvent :: HMailState -> EventM n HMailState
 startEvent st = pure st
 
-handleEvent :: HMailState
-  -> BrickEvent ResName ImapEvent
-  -> EventM ResName (Next HMailState)
-handleEvent st e =
-  execEvH (handleActiveView e) st
-  >>= flip handleGlobalEvent e
+handleEvent :: BrickEv ImapEvent -> EvF
+handleEvent e =
+  handleActiveView e >> handleGlobalEvent e
 
-handleGlobalEvent :: HMailState
-  -> BrickEvent ResName ImapEvent
-  -> EventM ResName (Next HMailState)
-handleGlobalEvent st = \case
+handleGlobalEvent :: BrickEv ImapEvent -> EvF
+handleGlobalEvent = \case
   AppEvent (e::ImapEvent) ->
-    handleImapEvent st e
+    handleImapEvent e
   VtyEvent (EvKey key mods) -> 
-    handleKeyEvent st key mods
-  e -> resizeOrQuit st e
+    handleKeyEvent key mods
+  e -> resizeOrQuitEventH e
 
-handleActiveView :: BrickEvent ResName ImapEvent -> EvH ResName ()
+handleActiveView :: BrickEv ImapEvent -> EvH ()
 handleActiveView e = use activeView >>= \case
   MailBoxView mbox lst -> 
     MailBoxView.handleEvent mbox lst e
@@ -77,30 +72,31 @@ handleActiveView e = use activeView >>= \case
   MailView _ uid ->
     MailView.handleEvent uid e
 
-handleImapEvent :: HMailState
-  -> ImapEvent -> EventM ResName (Next HMailState)
-handleImapEvent st = \case
-  ImapFetchMetas mbox metas ->
-    continue $ updateMailBoxView $ storeMetas mbox metas st
-  ImapFetchContent mbox conts ->
-    continue $ updateMailView $ storeContents mbox conts st
-  ImapListMailBoxes boxData ->
-    continue $ updateBoxesView $ storeMailBoxes boxData st
-  ImapError err ->
-    halt $ logErr err st
+handleImapEvent :: ImapEvent -> EvF
+handleImapEvent = \case
+  ImapFetchMetas mbox metas -> do
+    storeMetas mbox metas
+    updateMailBoxView
+    continueEventH
+  ImapFetchContent mbox conts -> do
+    storeContents mbox conts
+    updateMailView
+    continueEventH
+  ImapListMailBoxes boxData -> do
+    storeMailBoxes boxData
+    updateBoxesView
+    continueEventH
+  ImapError err -> do
+    logErr err
+    haltEventH
 
-handleKeyEvent :: HMailState
-  -> Key -> [Modifier]
-  -> EventM ResName (Next HMailState)
-handleKeyEvent st key mods =
+handleKeyEvent :: Key -> [Modifier] -> EvF
+handleKeyEvent key mods =
   case key of
-    KEsc -> quit
-    KChar 'r' -> next
-    KChar 'q' -> quit
-    _ -> next
-  where
-    next = continue st
-    quit = halt st
+    KEsc -> haltEventH
+    KChar 'r' -> continueEventH
+    KChar 'q' -> haltEventH
+    _ -> continueEventH
 
 
 draw :: HMailState -> [Widget ResName]

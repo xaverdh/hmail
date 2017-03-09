@@ -1,8 +1,9 @@
-{-# language TemplateHaskell, Strict #-}
+{-# language FlexibleContexts #-}
 module HMail.State where
 
 import HMail.Mail
 import HMail.Types
+-- import HMail.Brick.EventH
 
 import Network.HaskellNet.IMAP.Types
 
@@ -14,52 +15,58 @@ import qualified Data.Foldable as F
 import Control.Lens
 import Control.Exception
 import Control.Concurrent.Chan
+import Control.Monad.State.Class
 
 
-storeMeta :: MailboxName -> MailMeta -> HMailState -> HMailState
-storeMeta mbox meta = mailLens .~ Just (mkEmptyMail meta)
+storeMeta :: MonadState HMailState m
+  => MailboxName -> MailMeta -> m ()
+storeMeta mbox meta = 
+  mailLens .= Just (mkEmptyMail meta)
   where
     uid = meta ^. metaUid
     mailLens = mailBoxes . ix mbox . mails . at uid
 
-storeMetas :: MailboxName -> [MailMeta] -> HMailState -> HMailState
-storeMetas mbox = flip $ foldr (storeMeta mbox)
+storeMetas :: MonadState HMailState m
+  => MailboxName -> [MailMeta] -> m ()
+storeMetas mbox = mapM_ $ storeMeta mbox
 
-storeContent :: MailboxName -> UID -> MailContent
-  -> HMailState -> HMailState
+storeContent :: MonadState HMailState m
+  => MailboxName -> UID -> MailContent -> m ()
 storeContent mbox uid content =
   let mailLens = mailBoxes . ix mbox . mails . ix uid
-   in mailLens . mailContent .~ content
+   in mailLens . mailContent .= content
 
-storeContents :: MailboxName -> [(UID,MailContent)]
-  -> HMailState -> HMailState
-storeContents mbox = flip $ foldr (uncurry $ storeContent mbox)
+storeContents :: MonadState HMailState m
+  => MailboxName -> [(UID,MailContent)] -> m ()
+storeContents mbox = mapM_ (uncurry $ storeContent mbox)
 
-storeMailBoxes :: [(MailboxName,MailBox)]
-  -> HMailState -> HMailState
-storeMailBoxes boxData = mailBoxes .~ M.fromList boxData
+storeMailBoxes :: MonadState HMailState m
+  => [(MailboxName,MailBox)] -> m ()
+storeMailBoxes boxData = mailBoxes .= M.fromList boxData
   -- M.union (M.fromList boxData)
 
-logErr :: Exception e => e -> HMailState -> HMailState
-logErr err = errLog %~ (show err:)
+logErr :: (MonadState HMailState m,Exception e) => e -> m ()
+logErr err = errLog %= (show err:)
 
-updateBoxesView :: HMailState -> HMailState
-updateBoxesView st = st &
-  activeView . boxesViewList .~ newList
+updateBoxesView :: MonadState HMailState m => m ()
+updateBoxesView = do
+  lst <- newList . vec <$> get
+  activeView . boxesViewList .= lst
   where
-    newList = list ResBoxesList vec 1
-    vec = V.fromList . M.keys $ st ^. mailBoxes
+    newList v = list ResBoxesList v 1
+    vec st = V.fromList . M.keys $ st ^. mailBoxes
 
-updateMailBoxView :: HMailState -> HMailState
-updateMailBoxView st = st & 
-  activeView . boxViewList .~ newList
+updateMailBoxView :: MonadState HMailState m => m ()
+updateMailBoxView = do
+  lst <- newList . vec <$> get
+  activeView . boxViewList .= lst
   where
-    name = st ^. activeView . boxViewName
-    newList = list ResMailBoxList vec 1
-    vec = V.fromList . map (view mailMeta) . M.elems
-      $ st ^. mailBoxes . ix name . mails
+    name = view (activeView . boxViewName)
+    newList v = list ResMailBoxList v 1
+    vec st = V.fromList . map (view mailMeta) . M.elems
+      $ st ^. mailBoxes . ix (name st) . mails
 
-updateMailView :: HMailState -> HMailState
-updateMailView = id
+updateMailView :: MonadState HMailState m => m ()
+updateMailView = pure ()
 
 

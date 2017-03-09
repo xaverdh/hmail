@@ -3,9 +3,10 @@ module HMail.Brick.MailBoxView where
 
 import HMail.Types
 import HMail.Header
-import HMail.Brick.EvH
+import HMail.Brick.EventH
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
+import HMail.Brick.Banner
 
 import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
@@ -34,7 +35,7 @@ import qualified Data.Foldable as F
 handleEvent :: MailboxName
   -> List ResName MailMeta
   -> BrickEvent ResName e
-  -> EvH ResName ()
+  -> EvH ()
 handleEvent mbox lst = \case
   VtyEvent ev -> do
     lst' <- liftBase $ handleListEvent ev lst
@@ -49,8 +50,9 @@ draw :: MailboxName
   -> List ResName MailMeta
   -> HMailState -> Widget ResName
 draw mbox lst st = 
-  padTop (Pad 2)
-  $ renderList renderMMeta True lst
+  -- padTop (Pad 2)
+  banner genericHelp
+  <=> renderList renderMMeta True lst
   where
     renderMMeta focused meta =
       ( if focused then withAttr "focused" else id )
@@ -98,7 +100,7 @@ fmt n
     suffixes = ["K","M","G","T"]
 
 handleKeyEvent :: List ResName MailMeta
-  -> Key -> [Modifier] -> EvH ResName ()
+  -> Key -> [Modifier] -> EvH ()
 handleKeyEvent lst key mods = case key of
   KChar 'y' -> enterBoxesView
   KEnter -> whenJust ( getSelected lst ) $ \meta -> do

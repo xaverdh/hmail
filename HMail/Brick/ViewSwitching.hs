@@ -2,14 +2,13 @@ module HMail.Brick.ViewSwitching where
 
 import HMail.Types
 import HMail.Mail
-import HMail.Brick.EvH
+import HMail.Brick.EventH
 import HMail.Brick.Util
 
 import Brick.Widgets.Core
 import Brick.Widgets.List
 
 import Network.HaskellNet.IMAP.Types
-
 
 import Control.Lens
 import Control.Monad
@@ -19,7 +18,7 @@ import qualified Data.Vector as V
 import qualified Data.Map.Lazy as M
 
 
-enterMailBoxView :: MailboxName -> EvH ResName ()
+enterMailBoxView :: MailboxName -> EvH ()
 enterMailBoxView name =
   whenJustM (use $ mailBoxes . at name) $ \box -> do
     activeView .= MailBoxView name (newList box)
@@ -34,7 +33,7 @@ enterMailBoxView name =
       <$> box ^. mails . to (V.fromList . M.elems)
 
 
-enterBoxesView :: EvH ResName ()
+enterBoxesView :: EvH ()
 enterBoxesView = do
   vec <- use $ mailBoxes . to (V.fromList . M.keys)
   activeView .= MailBoxesView (newList vec)
@@ -44,7 +43,8 @@ enterBoxesView = do
     newList :: V.Vector MailboxName -> List ResName MailboxName
     newList vec = list ResBoxesList vec 3
 
-enterMailView :: MailboxName -> Mail -> EvH ResName ()
+
+enterMailView :: MailboxName -> Mail -> EvH ()
 enterMailView mbox mail = do
   activeView .= MailView mbox uid
   -- order matters here

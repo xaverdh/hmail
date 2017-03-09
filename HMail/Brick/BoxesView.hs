@@ -6,9 +6,10 @@ module HMail.Brick.BoxesView (
 
 import HMail.Types
 import HMail.Mail
-import HMail.Brick.EvH
+import HMail.Brick.EventH
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
+import HMail.Brick.Banner
 
 import Brick.Types
 import Brick.Main
@@ -27,7 +28,7 @@ import Control.Monad.Extra
 import Data.Monoid
 
 handleEvent :: List ResName MailboxName
-  -> BrickEvent ResName e -> EvH ResName ()
+  -> BrickEvent ResName e -> EvH ()
 handleEvent lst = \case
   VtyEvent ev -> do
     lst' <- liftBase $ handleListEvent ev lst
@@ -38,7 +39,7 @@ handleEvent lst = \case
   _ -> pure ()
 
 handleKeyEvent :: List ResName MailboxName
-  -> Key -> [Modifier] -> EvH ResName ()
+  -> Key -> [Modifier] -> EvH ()
 handleKeyEvent lst key mods = case key of
   KEnter -> whenJust (getSelected lst) enterMailBoxView
   _ -> pure ()
@@ -46,8 +47,10 @@ handleKeyEvent lst key mods = case key of
 
 draw :: List ResName MailboxName
   -> HMailState -> Widget ResName
-draw lst st = padTop (Pad 5)
-  $ renderList renderMBox True lst
+draw lst st = 
+  -- padTop (Pad 5)
+  banner genericHelp
+  <=> renderList renderMBox True lst
   where
     renderMBox :: Bool -> MailboxName -> Widget ResName
     renderMBox focused mbox = 

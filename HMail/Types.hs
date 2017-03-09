@@ -2,6 +2,8 @@
 module HMail.Types where
 
 import HMail.Mail
+import HMail.Brick.EventH
+import Brick.Types
 
 import Data.Monoid
 import Data.Typeable
@@ -69,6 +71,10 @@ data ResName =
   | ResMailBoxList
   | ResBoxesList
   deriving (Eq,Ord,Show)
+
+type BrickEv = BrickEvent ResName
+type EvH = EventH HMailState ResName
+type EvF = EventF HMailState ResName
 
 makeLenses ''ImapInit
 makeLenses ''MailBox

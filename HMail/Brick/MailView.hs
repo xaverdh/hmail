@@ -5,8 +5,9 @@ import HMail.State
 import HMail.Types
 import HMail.Mail
 import HMail.Header
-import HMail.Brick.EvH
+import HMail.Brick.EventH
 import HMail.Brick.ViewSwitching
+import HMail.Brick.Banner
 
 import Brick.Types
 import Brick.Main
@@ -25,7 +26,7 @@ import qualified Data.Map.Lazy as M
 
 handleEvent :: UID
   -> BrickEvent ResName e
-  -> EvH ResName ()
+  -> EvH ()
 handleEvent uid = \case
   VtyEvent ev -> case ev of
     EvKey key mods -> handleKeyEvent uid key mods
@@ -33,7 +34,7 @@ handleEvent uid = \case
   _ -> pure ()
 
 
-handleKeyEvent :: UID -> Key -> [Modifier] -> EvH ResName ()
+handleKeyEvent :: UID -> Key -> [Modifier] -> EvH ()
 handleKeyEvent uid key mods = case key of
   KUp -> liftBase $ if haveMod
     then vScrollPage vp Up
@@ -41,8 +42,12 @@ handleKeyEvent uid key mods = case key of
   KDown -> liftBase $ if haveMod
     then vScrollPage vp Down
     else vScrollBy vp 1
-  KLeft -> liftBase $ hScrollBy vp (-1)
-  KRight -> liftBase $ hScrollBy vp 1
+  KLeft -> liftBase $ if haveMod
+    then hScrollBy vp (-10)
+    else hScrollBy vp (-1) 
+  KRight -> liftBase $ if haveMod
+    then hScrollBy vp 10
+    else hScrollBy vp 1
   KPageUp -> liftBase $ vScrollToBeginning vp
   KPageDown -> liftBase $ vScrollToEnd vp
   KChar 'y' -> do
@@ -55,7 +60,8 @@ handleKeyEvent uid key mods = case key of
 
 draw :: MailboxName -> UID -> HMailState -> Widget ResName
 draw mbox uid st = 
-  viewport ResMainViewport Both
+  (banner genericHelp <=>)
+  . viewport ResMainViewport Both
   . fromMaybe errorWidget $ do
     box <- st ^. mailBoxes . at mbox
     mail <- box ^. mails . at uid
