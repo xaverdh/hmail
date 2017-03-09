@@ -69,7 +69,7 @@ handleActiveView e = use activeView >>= \case
     MailBoxView.handleEvent mbox lst e
   MailBoxesView lst ->
     BoxesView.handleEvent lst e
-  MailView _ uid ->
+  MailView _ uid _ ->
     MailView.handleEvent uid e
 
 handleImapEvent :: ImapEvent -> EvF
@@ -103,5 +103,5 @@ draw :: HMailState -> [Widget ResName]
 draw st = pure $ case st ^. activeView of
   MailBoxesView lst -> BoxesView.draw lst st
   MailBoxView mbox lst -> MailBoxView.draw mbox lst st
-  MailView mbox uid -> MailView.draw mbox uid st
+  MailView mbox uid fhdr -> MailView.draw mbox uid fhdr st
 

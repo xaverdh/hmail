@@ -6,12 +6,12 @@ import Brick.Widgets.Center
 import Data.Monoid
 
 banner :: [String] -> Widget n
-banner help = hCenter
-  . hBox
-  . map str
-  . map (" "<>)
-  $ "hmail-dev" : help
+banner help = str "hmail-dev" <+>
+  ( hCenter
+    . hBox
+    . map str
+    . map (" "<>)
+    $ help )
 
 genericHelp :: [String]
-genericHelp = [ "q: quit", "y: back" ]
-
+genericHelp = [ "q:quit", "y:back" ]

@@ -57,6 +57,7 @@ data View n =
   | MailView {
      _mailViewBoxName :: MailboxName
      ,_mailViewUid :: UID
+     ,_mailViewShowFullHeader :: Bool
     }
 
 

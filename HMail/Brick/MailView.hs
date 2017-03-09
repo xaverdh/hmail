@@ -23,6 +23,7 @@ import Control.Monad.Base
 import Data.Monoid
 import Data.Maybe
 import qualified Data.Map.Lazy as M
+import qualified Data.Text as T
 
 handleEvent :: UID
   -> BrickEvent ResName e
@@ -53,14 +54,16 @@ handleKeyEvent uid key mods = case key of
   KChar 'y' -> do
     mbox <- use $ activeView . mailViewBoxName
     enterMailBoxView mbox
+  KChar 'f' -> do
+    activeView . mailViewShowFullHeader %= not
   _ -> pure ()
   where
     haveMod = mods /= []
     vp = viewportScroll ResMainViewport
 
-draw :: MailboxName -> UID -> HMailState -> Widget ResName
-draw mbox uid st = 
-  (banner genericHelp <=>)
+draw :: MailboxName -> UID -> Bool -> HMailState -> Widget ResName
+draw mbox uid fullHdr st = 
+  (banner mailViewHelp <=>)
   . viewport ResMainViewport Both
   . fromMaybe errorWidget $ do
     box <- st ^. mailBoxes . at mbox
@@ -76,8 +79,17 @@ draw mbox uid st =
     renderHeader :: Header -> Widget ResName
     renderHeader =
       let f key val wgt = txt (key <> ":" <> val) <=> wgt
-       in M.foldrWithKey f emptyWidget . view headerMap
+       in M.foldrWithKey f emptyWidget
+        . (if fullHdr then id else M.filterWithKey important)
+        . view headerMap
+    
+    important :: T.Text -> a -> Bool
+    important key _ = key `elem`
+      [ "Date", "From", "Subject", "To", "User-Agent" ]
     
     errorWidget = txt "An error ocurred – Sorry."
     
-        
+
+mailViewHelp :: [String]        
+mailViewHelp = genericHelp ++ [ "f:toggle-full-header" ]
+

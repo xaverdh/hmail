@@ -46,7 +46,7 @@ enterBoxesView = do
 
 enterMailView :: MailboxName -> Mail -> EvH ()
 enterMailView mbox mail = do
-  activeView .= MailView mbox uid
+  activeView .= MailView mbox uid False
   -- order matters here
   sendCommand $ FetchContent mbox [uid]
   where

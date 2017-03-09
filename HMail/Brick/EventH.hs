@@ -37,7 +37,6 @@ finaliseEventH :: EventF s n -> s -> EventM n (Next s)
 finaliseEventH = evalEventH
 
 
-
 continueEventH :: EventF s n
 continueEventH = get >>= liftBase . continue
 
