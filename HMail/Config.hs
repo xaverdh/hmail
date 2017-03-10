@@ -1,20 +1,15 @@
-{-# language GADTs, TypeOperators, FlexibleInstances #-}
--- GADTs, FlexibleInstances, FlexibleContexts, TemplateHaskell, KindSignatures, PolyKinds, TypeFamilies, TypeOperators, RankNTypes #-}
+{-# language ScopedTypeVariables, LambdaCase #-}
 module HMail.Config where
 
 import HMail.Types
+import HMail.Config.Parser
 
 import DTypes
 import DTypes.Collect
-import DTypes.Instances.AlternativeInducesMonoid
 
 import Control.Applicative
 import Control.Monad.Writer
-
 import System.Environment
-import System.Directory
-import System.FilePath
-
 import Data.Monoid
 import Text.Read (readMaybe)
 
@@ -24,27 +19,18 @@ import Options.Applicative.Help.Types (ParserHelp)
 
 type Assemble a = WriterT (DImapInit Maybe) IO a
 
-getConfigPaths :: IO [String]
-getConfigPaths = do
-  home <- getHomeDirectory
-  pure $
-    [ home </> ".config/hmailrc"
-     ,home </> ".hmailrc"
-     ,"/etc/hmailrc" ]
-
-
 assembleConfig :: IO (Maybe ImapInit)
-assembleConfig = fmap collect . execWriterT $
+assembleConfig = fmap collect . execWriterT $ do
+  assembleFromCmdline -- ^ cmdline has highest priority
   assembleFromFiles
-  >> assembleFromCmdline
-  >> assembleDefaults
+  assembleDefaults
 
 assembleFromFiles :: Assemble ()
-assembleFromFiles = do
-  -- paths <- getConfigPaths forM paths $ \path ->
-  pure ()
+assembleFromFiles = liftIO readConfigs >>= tell
 
--- parseConfig :: 
+assembleDefaults :: Assemble ()
+assembleDefaults = tell $ mempty { d_imapPort = Just 993 }
+
 
 assembleFromCmdline :: Assemble ()
 assembleFromCmdline = do
@@ -75,14 +61,11 @@ assembleFromCmdline = do
       <*> portOpt (long "port" <> metavar "PORT"
         <> help "the port to connect to")
       <*> genOpt (long "username" <> metavar "USER"
-        <> help "the username of the account")
+        <> help "the username of the account to log into")
       <*> genOpt (long "password" <> metavar "PWD"
-        <> help "the imap password")
+        <> help "the password for the imap account")
     
     genOpt = optional . option str
     portOpt = optional . option
       (maybeReader $ fmap fromInteger . readMaybe)
-
-assembleDefaults :: Assemble ()
-assembleDefaults = pure ()
 
