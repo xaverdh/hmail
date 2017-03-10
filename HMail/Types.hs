@@ -1,10 +1,13 @@
-{-# language GADTs, LambdaCase, TemplateHaskell #-}
+{-# language GADTs, TemplateHaskell, KindSignatures, TypeFamilies #-}
 module HMail.Types where
 
 import HMail.Mail
 import HMail.Brick.EventH
-import Brick.Types
 
+import Brick.Types
+import Brick.Widgets.List
+
+import qualified Data.Map.Lazy as M
 import Data.Monoid
 import Data.Typeable
 import Control.Lens
@@ -13,10 +16,8 @@ import Control.Concurrent.Chan
 
 import Network.Socket.Internal (PortNumber)
 import Network.HaskellNet.IMAP.Types
-import qualified Data.Map.Lazy as M
 
-import Brick.Widgets.List
-
+import DTypes.TH
 
 data ImapEvent where
   ImapFetchMetas :: MailboxName -> [MailMeta] -> ImapEvent
@@ -31,6 +32,7 @@ data ImapInit =
    ,_imapUsername :: String
    ,_imapPassword :: String
   }
+
 
 data HMailState = 
   HMailState {
@@ -71,6 +73,7 @@ data ResName =
   ResMainViewport
   | ResMailBoxList
   | ResBoxesList
+  | ResPrompt
   deriving (Eq,Ord,Show)
 
 type BrickEv = BrickEvent ResName
@@ -81,4 +84,6 @@ makeLenses ''ImapInit
 makeLenses ''MailBox
 makeLenses ''HMailState
 makeLenses ''View
+
+makeDType ''ImapInit
 
