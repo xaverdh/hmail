@@ -3,6 +3,7 @@ module HMail.Types where
 
 import HMail.Mail
 import HMail.Brick.EventH
+import HMail.TH
 
 import Brick.Types
 import Brick.Widgets.List
@@ -19,22 +20,33 @@ import Network.HaskellNet.IMAP.Types
 
 import DTypes.TH
 
+
 data ImapEvent where
   ImapFetchMetas :: MailboxName -> [MailMeta] -> ImapEvent
   ImapFetchContent :: MailboxName -> [(UID,MailContent)] -> ImapEvent
   ImapListMailBoxes :: [(MailboxName,MailBox)] -> ImapEvent
   ImapError :: Exception e => e -> ImapEvent
 
-data ImapInit = 
-  ImapInit {
-    _imapHostname :: String
-   ,_imapPort :: PortNumber
-   ,_imapUsername :: String
-   ,_imapPassword :: String
+
+newtype Hostname = Hostname String
+newtype Port = Port PortNumber
+newtype Username = Username String
+newtype Password = Password String
+
+data Init = 
+  Init {
+    _imapHostname :: Hostname
+   ,_imapPort :: Port
+   ,_imapUsername :: Username
+   ,_imapPassword :: Password
+
+   ,_smtpHostname :: Hostname
+   ,_smtpPort :: Port
+   ,_smtpUsername :: Username
+   ,_smtpPassword :: Password
   }
 
-
-data HMailState = 
+data HMailState =
   HMailState {
    _mailBoxes :: M.Map MailboxName MailBox
    ,_errLog :: [String]
@@ -80,10 +92,10 @@ type BrickEv = BrickEvent ResName
 type EvH = EventH HMailState ResName
 type EvF = EventF HMailState ResName
 
-makeLenses ''ImapInit
+makeLenses ''Init
 makeLenses ''MailBox
 makeLenses ''HMailState
 makeLenses ''View
 
-makeDType ''ImapInit
-
+makeDType ''Init
+myMakeLenses ''DInit

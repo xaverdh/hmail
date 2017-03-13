@@ -13,6 +13,7 @@ import qualified HMail.Brick.BoxesView as BoxesView
 import qualified HMail.Brick.MailBoxView as MailBoxView
 import qualified HMail.Brick.MailView as MailView
 
+import Brick.Widgets.Edit
 import Brick.Widgets.Core
 import Brick.Widgets.List
 import Brick.Types
@@ -122,8 +123,11 @@ handleKeyEvent key mods =
 
 
 draw :: HMailState -> [Widget ResName]
-draw st = pure $ case st ^. activeView of
-  MailBoxesView lst -> BoxesView.draw lst st
-  MailBoxView mbox lst -> MailBoxView.draw mbox lst st
-  MailView mbox uid fhdr -> MailView.draw mbox uid fhdr st
+draw st = pure $ w -- <=> renderEditor True promptEd
+  where
+    -- promptEd = editorText ResPrompt (txt . F.fold) (Just 1) "<enter cmd>"
+    w = case st ^. activeView of
+      MailBoxesView lst -> BoxesView.draw lst st
+      MailBoxView mbox lst -> MailBoxView.draw mbox lst st
+      MailView mbox uid fhdr -> MailView.draw mbox uid fhdr st
 

@@ -2,70 +2,49 @@
 module HMail.Config where
 
 import HMail.Types
+import HMail.Init
 import HMail.Config.Parser
 
 import DTypes
 import DTypes.Collect
 
+import Control.Lens
 import Control.Applicative
 import Control.Monad.Writer
 import System.Environment
 import Data.Monoid
-import Text.Read (readMaybe)
+import Data.Bifunctor
+import Data.Maybe
 
-import Options.Applicative as OA
-import Options.Applicative.Builder as OB
-import Options.Applicative.Help.Types (ParserHelp)
-
-type Assemble a = WriterT (DImapInit Maybe) IO a
-
-assembleConfig :: IO (Maybe ImapInit)
-assembleConfig = fmap collect . execWriterT $ do
-  assembleFromCmdline -- ^ cmdline has highest priority
-  assembleFromFiles
-  assembleDefaults
-
-assembleFromFiles :: Assemble ()
-assembleFromFiles = liftIO readConfigs >>= tell
-
-assembleDefaults :: Assemble ()
-assembleDefaults = tell $ mempty { d_imapPort = Just 993 }
-
-
-assembleFromCmdline :: Assemble ()
-assembleFromCmdline = do
-  args <- liftIO getArgs
-  case execParserPure OB.defaultPrefs parser args of
-    Success a ->  tell a
-    Failure e -> liftIO $ showError e
+assembleConfig :: DInit Maybe -> IO (Maybe Init)
+assembleConfig cmdline = 
+  fmap collectMaybe . execWriterT $
+    smtpDefautToImap $ do
+      getCmdLine -- ^ cmdline has highest priority
+      readConfigs
+      assembleDefaults
   where
-    showError :: ParserFailure ParserHelp -> IO ()
-    showError e = putStrLn . fst
-      $ renderFailure e ""
-    
-    conf = OB.defaultPrefs {
-      prefDisambiguate = True
-      ,prefShowHelpOnError = True
-    }
-    
-    parser = info (helper <*> hmailOptions)
-      (fullDesc
-        <> header "hmail: a mutt-style mail client, written in haskell"
-        -- <> progDescDoc (Just description)
-        <> failureCode 1)
-    
-    hmailOptions :: OA.Parser (DImapInit Maybe)
-    hmailOptions = DImapInit
-      <$> genOpt (long "hostname" <> metavar "HOST"
-        <> help "the host to connect to")
-      <*> portOpt (long "port" <> metavar "PORT"
-        <> help "the port to connect to")
-      <*> genOpt (long "username" <> metavar "USER"
-        <> help "the username of the account to log into")
-      <*> genOpt (long "password" <> metavar "PWD"
-        <> help "the password for the imap account")
-    
-    genOpt = optional . option str
-    portOpt = optional . option
-      (maybeReader $ fmap fromInteger . readMaybe)
+    getCmdLine = tell cmdline :: Assemble DInit ()
+
+assembleDefaults :: Assemble DInit ()
+assembleDefaults = tell $ do
+  ( mempty & d_imapPortl .~ Just (Port 993) )
+  <> ( mempty & d_smtpPortl .~ Just (Port 587) )
+
+
+smtpDefautToImap :: Assemble DInit () -> Assemble DInit ()
+smtpDefautToImap = censor $ \w ->
+  let deflt imapLens smtpLens = smtpLens %~ f w imapLens
+   in w & foldr (.) id
+    [ deflt d_imapHostnamel d_smtpHostnamel
+    , deflt d_imapPortl d_smtpPortl
+    , deflt d_imapUsernamel d_smtpUsernamel
+    , deflt d_imapPasswordl d_smtpPasswordl ]
+  where
+    f w l = case w ^? l of
+      Just v -> case v of
+        Just e -> const $ Just e
+        Nothing -> id
+      _ -> id
+
 

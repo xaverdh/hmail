@@ -47,11 +47,17 @@ newtype ImapM a = ImapM
    ,MonadBase IO
   )
 
-runImapM :: ImapM a -> ImapInit -> IO a
-runImapM (ImapM imapAction) init = do
-  con <- Ssl.connectIMAPSSLWithSettings (init ^. imapHostname)
-    (Ssl.defaultSettingsIMAPSSL { Ssl.sslPort = init ^. imapPort })
-  login con (init ^. imapUsername) (init ^. imapPassword)
+runImapM :: ImapM a
+  -> Hostname -> Port -> Username -> Password
+  -> IO a
+runImapM (ImapM imapAction)
+  (Hostname host)
+  (Port port)
+  (Username user)
+  (Password pass) = do
+  con <- Ssl.connectIMAPSSLWithSettings host
+    (Ssl.defaultSettingsIMAPSSL { Ssl.sslPort = port })
+  login con user pass
   runReaderT imapAction con `E.finally` logout con
   
   
@@ -112,11 +118,16 @@ selectCmd = \case
     result f = fmap (Just . f)
 
 
-imapThread :: ImapInit
+imapThread :: Init
   -> BChan ImapEvent
   -> Chan Command -> IO ()
-imapThread imapInit outChan inChan =
-  E.try (runImapM action imapInit)
+imapThread init outChan inChan =
+  E.try
+    ( runImapM action
+      ( init ^. imapHostname )
+      ( init ^. imapPort     )
+      ( init ^. imapUsername )
+      ( init ^. imapPassword ) )
   >>= \case
     Left (err :: E.ErrorCall) -> 
       writeBChan outChan (ImapError err)
