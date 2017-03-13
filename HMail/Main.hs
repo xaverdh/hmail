@@ -5,8 +5,11 @@ import HMail.Brick.Init (mkInitialState)
 import HMail.Imap (imapThread)
 import HMail.State
 import HMail.Types
-import HMail.Config
+import HMail.Init
+import HMail.Config.Parser
 
+import DTypes
+import DTypes.Collect
 
 import Brick.Main
 import Brick.BChan
@@ -14,10 +17,16 @@ import Graphics.Vty (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 
 import Control.Lens
+import Control.Applicative
 import Control.Monad
+import Control.Monad.Writer
 import Control.Concurrent
 import Control.Concurrent.Chan
 import System.Environment
+
+import Data.Monoid
+import Data.Maybe
+
 
 hmailMain :: DInit Maybe -> IO ()
 hmailMain cmdline = do
@@ -32,3 +41,37 @@ hmailMain cmdline = do
   pure ()
   where
     onErr = error "could not find config data"
+
+
+assembleConfig :: DInit Maybe -> IO (Maybe Init)
+assembleConfig cmdline =
+  fmap collectMaybe . execWriterT $
+    smtpDefautToImap $ do
+      getCmdLine -- ^ cmdline has highest priority
+      readConfigs
+      assembleDefaults
+  where
+    getCmdLine = tell cmdline :: Assemble DInit ()
+
+assembleDefaults :: Assemble DInit ()
+assembleDefaults = tell $ do
+  ( mempty & d_imapPortl .~ Just (Port 993) )
+  <> ( mempty & d_smtpPortl .~ Just (Port 587) )
+
+
+smtpDefautToImap :: Assemble DInit () -> Assemble DInit ()
+smtpDefautToImap = censor $ \w ->
+  let deflt imapLens smtpLens = smtpLens %~ f w imapLens
+   in w & foldr (.) id
+    [ deflt d_imapHostnamel d_smtpHostnamel
+    , deflt d_imapPortl d_smtpPortl
+    , deflt d_imapUsernamel d_smtpUsernamel
+    , deflt d_imapPasswordl d_smtpPasswordl ]
+  where
+    f w l = case w ^? l of
+      Just v -> case v of
+        Just e -> const $ Just e
+        Nothing -> id
+      _ -> id
+
+
