@@ -54,9 +54,9 @@ assembleConfig cmdline =
     getCmdLine = tell cmdline :: Assemble DInit ()
 
 assembleDefaults :: Assemble DInit ()
-assembleDefaults = tell $ do
-  ( mempty & d_imapPortl .~ Just (Port 993) )
-  <> ( mempty & d_smtpPortl .~ Just (Port 587) )
+assembleDefaults = tell
+  $ fromLens d_imapPortl (Port 993)
+  <> fromLens d_smtpPortl (Port 587)
 
 
 smtpDefautToImap :: Assemble DInit () -> Assemble DInit ()

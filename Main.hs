@@ -74,24 +74,24 @@ otherOptions = empty
 hmailImapOptions :: OA.Parser (DInit Maybe)
 hmailImapOptions = F.fold
   [ hostOpt d_imapHostnamel (long "imap-hostname" <> metavar "HOST"
-    <> help "the host to connect to")
+    <> help "The (imap) host to connect to")
   , portOpt d_imapPortl (long "imap-port" <> metavar "PORT"
-    <> help "the port to connect to")
+    <> help "The (imap) port to connect to")
   , userOpt d_imapUsernamel (long "imap-username" <> metavar "USER"
-    <> help "the username of the account to log into")
+    <> help "The username of the (imap) account to log into")
   , passOpt d_imapPasswordl (long "imap-password" <> metavar "PWD"
-    <> help "the password for the imap account") ]
+    <> help "The password for the (imap) account") ]
 
 hmailSmtpOptions :: OA.Parser (DInit Maybe)
 hmailSmtpOptions = F.fold
   [ hostOpt d_smtpHostnamel (long "smtp-hostname" <> metavar "HOST"
-    <> help "the host to connect to")
+    <> help "The (smtp) host to connect to")
   , portOpt d_smtpPortl (long "smtp-port" <> metavar "PORT"
-    <> help "the port to connect to")
+    <> help "The (smtp) port to connect to")
   , userOpt d_smtpUsernamel (long "smtp-username" <> metavar "USER"
-    <> help "the username of the account to log into")
+    <> help "The username of the (smtp) account to log into")
   , passOpt d_smtpPasswordl (long "smtp-password" <> metavar "PWD"
-    <> help "the password for the imap account") ]
+    <> help "The password for the (smtp) account") ]
 
 genOpt f l = fmap (maybe mempty $ fromLens l . f) . optional . option str
 hostOpt = genOpt Hostname
@@ -101,8 +101,4 @@ portOpt l = fmap (maybe mempty $ fromLens l . Port) . optional . option
   (maybeReader $ fmap fromInteger . readMaybe)
 
 
-{-
-withA :: Monoid a => f a -> f a -> f a
-withA a b = fmap (<>) a <*> b
--}
 
