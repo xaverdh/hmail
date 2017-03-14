@@ -1,4 +1,4 @@
-{-# language OverloadedStrings, TemplateHaskell #-}
+{-# language LambdaCase, TupleSections, OverloadedStrings, TemplateHaskell #-}
 module HMail.Header where
 
 import Prelude hiding (take)
@@ -19,7 +19,7 @@ import qualified Data.ByteString as B
 import Data.Attoparsec.ByteString.Char8
 
 
-type HeaderPart = T.Text
+type HeaderPart = B.ByteString
 
 newtype Header = Header {
     _headerMap :: M.Map HeaderPart T.Text
@@ -28,13 +28,28 @@ newtype Header = Header {
 
 makeLenses ''Header
 
-parseHeader :: B.ByteString -> Header
-parseHeader = Header
-  . M.fromList
-  . map (bimap Enc.decodeUtf8 Enc.decodeUtf8)
-  . either (const []) id
-  . parseOnly headerP
 
+asTextMap :: Header -> M.Map T.Text T.Text
+asTextMap (Header mp) = M.mapKeys Enc.decodeUtf8 mp
+
+package :: [(B.ByteString,B.ByteString)] -> Header
+package = Header . M.fromList
+  . map (bimap id Enc.decodeUtf8)
+
+parseHeaderOnly :: B.ByteString -> Header
+parseHeaderOnly = package
+  . either (const []) id
+  . parseOnly (headerP <* endOfInput)
+
+
+parseHeader :: B.ByteString -> Maybe (Header,B.ByteString)
+parseHeader =
+  finalise . parse headerP
+  where
+    finalise = \case
+      Fail _ _ _ -> Nothing
+      Partial _ -> Nothing
+      Done i r -> Just (package r,i)
 
 headerP :: Parser [(B.ByteString,B.ByteString)]
 headerP = many $ lineP where

@@ -8,6 +8,7 @@ import HMail.Types
 import HMail.Header
 import HMail.Mail
 import HMail.State
+import HMail.Parsing.Mime (mkBody)
 
 import Brick.BChan
 
@@ -79,11 +80,11 @@ listMailboxes = genBoxes <$> liftImapM list
   where
     genBoxes = map $ \(attrs,name) -> (name,MailBox mempty attrs)
 
-fetchMetas :: MailboxName -> ImapM [MailMeta]
-fetchMetas mbox = do
+fetchAll :: MailboxName -> (UID -> ImapM a) -> ImapM [a]
+fetchAll mbox action = do
   liftImapM1 select mbox
   uids <- liftImapM1 search [ALLs]
-  forM uids fetchMailMeta
+  forM uids action
 
 fetchMailContent :: UID -> ImapM MailContent
 fetchMailContent uid =
@@ -92,22 +93,26 @@ fetchMailContent uid =
 
 fetchMailMeta :: UID -> ImapM MailMeta
 fetchMailMeta uid = do
-  hdr <- liftImapM1 fetchHeader uid
   flags <- liftImapM1 fetchFlags uid
   size <- liftImapM1 fetchSize uid
   pure $ MailMeta {
      _metaUid = uid
-     ,_metaHeader = parseHeader hdr
      ,_metaFlags = flags
      ,_metaSize = size
     }
-    
+
+fetchMailHeader :: UID -> ImapM Header
+fetchMailHeader uid = do
+  parseHeaderOnly <$> liftImapM1 fetchHeader uid
 
 selectCmd :: Command -> ImapM (Maybe ImapEvent)
 selectCmd = \case
-  FetchMetas mbox ->
-    result (ImapFetchMetas mbox)
-      $ fetchMetas mbox
+  FetchMetasAndHeaders mbox -> do
+    result (ImapFetchMetasAndHeaders mbox)
+      $ fetchAll mbox
+      ( \uid -> (,)
+        <$> fetchMailMeta uid
+        <*> fetchMailHeader uid )
   FetchContent mbox uids ->
     result (ImapFetchContent mbox)
       $ zip uids <$> forM uids fetchMailContent

@@ -23,7 +23,8 @@ import Data.Monoid
 import qualified Data.ByteString as B
 
 import Text.Parser.Combinators
-import Data.Attoparsec.ByteString.Char8 hiding (choice,sepBy1,manyTill)
+import Data.Attoparsec.ByteString.Char8 
+  hiding (choice,sepBy1,manyTill)
 
 getConfigPaths :: IO [String]
 getConfigPaths = do

@@ -74,7 +74,7 @@ draw mbox uid fullHdr st =
     Just $ case renderContent (mail ^. mailContent) of 
       Nothing -> loadingWidget
       Just cont -> viewport ResMainViewport Both
-        $ renderHeader (mail ^. mailMeta . metaHeader)
+        $ renderHeader (mail ^. mailHeader)
         <=> withAttr "body" cont
   where
     renderContent :: MailContent -> Maybe (Widget ResName)
@@ -85,10 +85,10 @@ draw mbox uid fullHdr st =
     renderHeader :: Header -> Widget ResName
     renderHeader = 
       let f key val wgt = txt (key <> ":" <> val) <=> wgt
-       in withAttr "header" 
+       in withAttr "header"
         . M.foldrWithKey f emptyWidget
         . (if fullHdr then id else M.filterWithKey important)
-        . view headerMap
+        . asTextMap
     
     important :: T.Text -> a -> Bool
     important key _ = key `elem`

@@ -1,7 +1,9 @@
 {-# language LambdaCase, TemplateHaskell, OverloadedStrings #-}
 module HMail.Mail where
 
+import HMail.Types
 import HMail.Header
+import HMail.Parsing.Mime
 
 import Control.Lens
 import Control.Applicative
@@ -21,45 +23,37 @@ import Codec.MIME.Parse
 import Codec.MIME.Type
 import Codec.MIME.QuotedPrintable
 
+import qualified Network.Mail.Mime as Mime
+
 -- import Data.Text.ICU.Normalize
 
-data MailContent = 
-  ContentIs T.Text
-  | ContentUnknown
-  deriving (Eq,Show)
-
-data MailMeta = 
-  MailMeta {
-   _metaUid :: UID
-   ,_metaHeader :: Header
-   ,_metaFlags :: [Flag]
-   ,_metaSize :: Int
-  } deriving (Eq,Show)
-
-data Mail = Mail {
-   _mailContent :: MailContent
-  ,_mailMeta :: MailMeta
-  } deriving (Eq,Show)
-
-makeLenses ''MailMeta
-makeLenses ''Mail
-
-mkEmptyMail :: MailMeta -> Mail
-mkEmptyMail meta =
+mkEmptyMail :: MailMeta -> Header -> Mail
+mkEmptyMail meta hdr =
   Mail {
     _mailContent = ContentUnknown
    ,_mailMeta = meta
+   ,_mailHeader = hdr
   }
 
-mkBody :: B.ByteString -> MailContent
-mkBody = ContentIs
-  . extract
-  . parseMIMEMessage 
-  . Enc.decodeUtf8
-  where
-    extract mime = case mime_val_content mime of
-      Single content -> convertNewlines content
-      Multi vals -> T.unlines $ map extract vals
-    
-    convertNewlines = T.replace "\r\n" "\n"
 
+asMimeMail :: Mail -> Maybe Mime.Mail
+asMimeMail mail = do
+  from <- valueOf "From"
+  to <- valuesOf "To"
+  cc <- valuesOf "Cc"
+  bcc <- valuesOf "Bcc"
+  pure (Mime.emptyMail from) {
+      Mime.mailTo = to
+     ,Mime.mailCc = cc
+     ,Mime.mailBcc = bcc
+     ,Mime.mailHeaders = rest
+     ,Mime.mailParts = undefined
+    }
+  where
+    hdrMap = mail ^. mailHeader . headerMap
+    valueOf s = M.lookup s hdrMap >>= parseAddr
+    valuesOf s = do
+      field <- M.lookup s hdrMap
+      parseAddrs field
+    special x = x `elem` ["From","To","Cc","Bcc"]
+    rest = M.toList $ M.filter (not . special) hdrMap

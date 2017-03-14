@@ -34,7 +34,7 @@ import qualified Data.Text as T
 import qualified Data.Foldable as F
 
 handleEvent :: MailboxName
-  -> List ResName MailMeta
+  -> List ResName (MailMeta,Header)
   -> BrickEvent ResName e
   -> EvH ()
 handleEvent mbox lst = \case
@@ -48,29 +48,30 @@ handleEvent mbox lst = \case
 
 
 draw :: MailboxName
-  -> List ResName MailMeta
+  -> List ResName (MailMeta,Header)
   -> HMailState -> Widget ResName
 draw mbox lst st = 
   -- padTop (Pad 2)
   banner genericHelp
-  <=> renderList renderMMeta True lst
+  <=> renderList renderEntry True lst
   where
-    renderMMeta hasFocus meta =
+    renderEntry hasFocus (meta,hdr) =
       markFocused hasFocus
       . markNew (isNew meta)
       . hBox . map (txt . (<>" ")) . join
-      $ [ composeId (meta ^. metaUid)
-         ,composeFlags (meta ^. metaFlags)
-         ,composeHeader (meta ^. metaHeader)
-         ,composeSize (meta ^. metaSize) ]
+      $ catMaybes 
+        [ composeId <$> (meta ^? metaUid)
+        , composeFlags <$> (meta ^? metaFlags)
+        , composeHeader hdr
+        , composeSize <$> (meta ^? metaSize) ]
     
     markFocused = bool id $ withAttr "focused"
     markNew = bool id (withAttr "new")
     
-    composeHeader :: Header -> [T.Text]
+    composeHeader :: Header -> Maybe [T.Text]
     composeHeader hdr =
       let f name = fromMaybe "" (hdr ^. headerMap . at name)
-       in map f entries
+       in Just $ map f entries
     
     composeSize :: Int -> [T.Text]
     composeSize s = pure $ "(" <> fmt s <> ")"
@@ -104,14 +105,17 @@ fmt n
     base = 10^3
     suffixes = ["K","M","G","T"]
 
-handleKeyEvent :: List ResName MailMeta
+handleKeyEvent :: List ResName (MailMeta,Header)
   -> Key -> [Modifier] -> EvH ()
 handleKeyEvent lst key mods = case key of
   KChar 'y' -> enterBoxesView
-  KEnter -> whenJust ( getSelected lst ) $ \meta -> do
+  KEnter -> whenJust ( getSelected lst ) $ \(meta,_) -> do
     mbox <- use $ activeView . boxViewName
-    whenJustM (use $ mailBoxes . at mbox) $ \box ->
-      whenJust (box ^. mails . at (meta ^. metaUid))
-        ( enterMailView mbox )
+    boxes <- use $ mailBoxes
+    flip whenJust (enterMailView mbox) $ do
+      box <- boxes ^. at mbox
+      uid <- meta ^? metaUid
+      box ^. mails . at uid -- check that mail exists
+      pure uid
   _ -> pure ()
 

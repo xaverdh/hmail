@@ -96,8 +96,8 @@ handleActiveView e = use activeView >>= \case
 
 handleImapEvent :: ImapEvent -> EvF
 handleImapEvent = \case
-  ImapFetchMetas mbox metas -> do
-    storeMetas mbox metas
+  ImapFetchMetasAndHeaders mbox metasAndHeaders -> do
+    storeMetasAndHeaders mbox metasAndHeaders
     updateMailBoxView
     continueEventH
   ImapFetchContent mbox conts -> do

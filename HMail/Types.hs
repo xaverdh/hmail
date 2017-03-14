@@ -1,7 +1,7 @@
 {-# language GADTs, TemplateHaskell, KindSignatures, TypeFamilies #-}
 module HMail.Types where
 
-import HMail.Mail
+import HMail.Header
 import HMail.Brick.EventH
 import HMail.TH
 
@@ -9,6 +9,7 @@ import Brick.Types
 import Brick.Widgets.List
 
 import qualified Data.Map.Lazy as M
+import qualified Data.Text as T
 import Data.Monoid
 import Data.Typeable
 import Control.Lens
@@ -22,7 +23,7 @@ import DTypes.TH
 
 
 data ImapEvent where
-  ImapFetchMetas :: MailboxName -> [MailMeta] -> ImapEvent
+  ImapFetchMetasAndHeaders :: MailboxName -> [(MailMeta,Header)] -> ImapEvent
   ImapFetchContent :: MailboxName -> [(UID,MailContent)] -> ImapEvent
   ImapListMailBoxes :: [(MailboxName,MailBox)] -> ImapEvent
   ImapError :: Exception e => e -> ImapEvent
@@ -56,7 +57,7 @@ data HMailState =
 
 data Command =
   FetchContent MailboxName [UID]
-  | FetchMetas MailboxName
+  | FetchMetasAndHeaders MailboxName
   | ListMailBoxes
 
 
@@ -66,7 +67,7 @@ data View n =
     }
   | MailBoxView { 
       _boxViewName :: MailboxName
-     ,_boxViewList :: List n MailMeta
+     ,_boxViewList :: List n (MailMeta,Header)
     }
   | MailView {
      _mailViewBoxName :: MailboxName
@@ -78,6 +79,26 @@ data View n =
 data MailBox = MailBox {
     _mails :: M.Map UID Mail
    ,_attrs :: [Attribute]
+  } deriving (Eq,Show)
+
+
+data MailContent = 
+  ContentIs T.Text
+  | ContentUnknown
+  deriving (Eq,Show)
+
+data MailMeta = 
+  MailMeta {
+   _metaUid :: UID
+   ,_metaFlags :: [Flag]
+   ,_metaSize :: Int
+  } | NoMeta
+  deriving (Eq,Show)
+
+data Mail = Mail {
+   _mailContent :: MailContent
+  ,_mailHeader :: Header
+  ,_mailMeta :: MailMeta
   } deriving (Eq,Show)
 
 
@@ -94,6 +115,8 @@ type EvF = EventF HMailState ResName
 
 makeLenses ''Init
 makeLenses ''MailBox
+makeLenses ''MailMeta
+makeLenses ''Mail
 makeLenses ''HMailState
 makeLenses ''View
 
