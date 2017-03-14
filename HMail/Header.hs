@@ -39,7 +39,7 @@ package = Header . M.fromList
 parseHeaderOnly :: B.ByteString -> Header
 parseHeaderOnly = package
   . either (const []) id
-  . parseOnly (headerP <* endOfInput)
+  . parseOnly headerP
 
 
 parseHeader :: B.ByteString -> Maybe (Header,B.ByteString)
