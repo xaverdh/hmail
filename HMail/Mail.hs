@@ -9,6 +9,7 @@ import Control.Lens
 import Control.Applicative
 import Control.Monad
 import Data.Maybe
+import Data.Monoid
 import Data.Functor
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
@@ -57,3 +58,16 @@ asMimeMail mail = do
       parseAddrs field
     special x = x `elem` ["From","To","Cc","Bcc"]
     rest = M.toList $ M.filter (not . special) hdrMap
+
+serialise :: Mail -> B.ByteString
+serialise mail =
+  serialiseHeader (mail ^. mailHeader)
+  <> serContent (mail ^. mailContent)
+  where
+    serContent = \case
+      ContentIs t -> Enc.encodeUtf8 t
+      ContentUnknown -> mempty
+
+deSerialise :: B.ByteString -> Maybe Mail
+deSerialise = parseMail
+

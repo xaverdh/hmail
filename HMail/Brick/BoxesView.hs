@@ -1,7 +1,7 @@
 {-# language LambdaCase, OverloadedStrings #-}
 module HMail.Brick.BoxesView (
   handleEvent
-  ,draw
+ ,draw
 ) where
 
 import HMail.Types

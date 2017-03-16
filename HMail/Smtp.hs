@@ -6,7 +6,7 @@ import Network.HaskellNet.SMTP.SSL
 -- import Network.HaskellNet.SMTP
 
 import Control.Monad
-import Network.Mail.Mime as Mime
+import qualified Network.Mail.Mime as Mime
 
 
 auth :: AuthType

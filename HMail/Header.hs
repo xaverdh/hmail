@@ -63,3 +63,8 @@ headerP = many $ lineP where
     pure (t <> ts)
 
 
+serialiseHeader :: Header -> B.ByteString
+serialiseHeader hdr =
+  let f key val bs = key <> ":" <> Enc.encodeUtf8 val <> "\n" <> bs
+   in M.foldrWithKey f "" (hdr ^. headerMap)
+
