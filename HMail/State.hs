@@ -2,6 +2,7 @@
 module HMail.State where
 
 import HMail.Mail
+import HMail.ImapMail as ImapMail
 import HMail.Types
 import HMail.Header
 -- import HMail.Brick.EventH
@@ -25,10 +26,13 @@ storeMetaAndHeader mbox (meta,hdr) =
   case meta ^? metaUid of
     Just uid -> mailLens uid %= Just . f
   where
-    f = maybe (mkEmptyMail meta hdr)
-      ( (mailMeta .~ meta)
-      . (mailHeader .~ hdr ) ) 
+    f = maybe (ImapMail.mkEmpty meta hdr)
+      ( (immMeta .~ meta)
+      . (immHeader .~ hdr ) ) 
     mailLens uid = mailBoxes . ix mbox . mails . at uid
+
+
+
 
 storeMetasAndHeaders :: MonadState HMailState m
   => MailboxName -> [(MailMeta,Header)] -> m ()
@@ -38,7 +42,7 @@ storeContent :: MonadState HMailState m
   => MailboxName -> UID -> MailContent -> m ()
 storeContent mbox uid content =
   let mailLens = mailBoxes . ix mbox . mails . ix uid
-   in mailLens . mailContent .= content
+   in mailLens . immContent .= content
 
 storeContents :: MonadState HMailState m
   => MailboxName -> [(UID,MailContent)] -> m ()
@@ -69,7 +73,7 @@ updateMailBoxView = do
     newList v = list ResMailBoxList v 1
     vec st = V.fromList . map extractElem . M.elems
       $ st ^. mailBoxes . ix (name st) . mails
-    extractElem mail = (mail ^. mailMeta,mail ^. mailHeader)
+    extractElem mail = (mail ^. immMeta,mail ^. immHeader)
 
 updateMailView :: MonadState HMailState m => m ()
 updateMailView = pure ()

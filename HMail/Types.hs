@@ -77,7 +77,7 @@ data View n =
 
 
 data MailBox = MailBox {
-    _mails :: M.Map UID Mail
+    _mails :: M.Map UID ImapMail
    ,_attrs :: [Attribute]
   } deriving (Eq,Show)
 
@@ -92,15 +92,19 @@ data MailMeta =
    _metaUid :: UID
    ,_metaFlags :: [Flag]
    ,_metaSize :: Int
-  } | NoMeta
+  }
   deriving (Eq,Show)
 
 data Mail = Mail {
    _mailContent :: MailContent
   ,_mailHeader :: Header
-  ,_mailMeta :: MailMeta
   } deriving (Eq,Show)
 
+data ImapMail =
+  ImapMail {
+    _immMeta :: MailMeta
+   ,_immMail :: Mail
+  } deriving (Eq,Show)
 
 data ResName = 
   ResMainViewport
@@ -116,6 +120,7 @@ type EvF = EventF HMailState ResName
 makeLenses ''Init
 makeLenses ''MailBox
 makeLenses ''MailMeta
+makeLenses ''ImapMail
 makeLenses ''Mail
 makeLenses ''HMailState
 makeLenses ''View

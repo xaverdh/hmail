@@ -32,7 +32,6 @@ parseMail bs = do
   pure Mail {
       _mailContent = mkBody rst
      ,_mailHeader = hdr
-     ,_mailMeta = NoMeta
     }
 
 

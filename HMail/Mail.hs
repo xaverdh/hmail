@@ -28,11 +28,11 @@ import qualified Network.Mail.Mime as Mime
 
 -- import Data.Text.ICU.Normalize
 
-mkEmptyMail :: MailMeta -> Header -> Mail
-mkEmptyMail meta hdr =
+
+mkEmpty :: Header -> Mail
+mkEmpty hdr =
   Mail {
     _mailContent = ContentUnknown
-   ,_mailMeta = meta
    ,_mailHeader = hdr
   }
 

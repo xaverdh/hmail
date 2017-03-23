@@ -3,6 +3,7 @@ module HMail.Brick.ViewSwitching where
 import HMail.Types
 import HMail.Header
 import HMail.Mail
+import HMail.ImapMail
 import HMail.Brick.EventH
 import HMail.Brick.Util
 
@@ -32,7 +33,7 @@ enterMailBoxView name =
     buildVect :: MailBox -> V.Vector (MailMeta,Header)
     buildVect box = extractElem
       <$> box ^. mails . to (V.fromList . M.elems)
-    extractElem mail = (mail ^. mailMeta,mail ^. mailHeader)
+    extractElem mail = (mail ^. immMeta,mail ^. immHeader)
 
 enterBoxesView :: EvH ()
 enterBoxesView = do

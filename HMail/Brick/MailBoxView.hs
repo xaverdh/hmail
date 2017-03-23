@@ -56,8 +56,9 @@ draw mbox lst st =
   <=> renderList renderEntry True lst
   where
     renderEntry hasFocus (meta,hdr) =
-      markFocused hasFocus
-      . markNew (isNew meta)
+      withAttr 
+        ( attrFocused hasFocus
+          <> attrNew (isNew meta) )
       . hBox . map (txt . (<>" ")) . join
       $ catMaybes 
         [ composeId <$> (meta ^? metaUid)
@@ -65,8 +66,8 @@ draw mbox lst st =
         , composeHeader hdr
         , composeSize <$> (meta ^? metaSize) ]
     
-    markFocused = bool id $ withAttr "focused"
-    markNew = bool id (withAttr "new")
+    attrFocused = bool mempty $ "focused"
+    attrNew = bool mempty $ "new"
     
     composeHeader :: Header -> Maybe [T.Text]
     composeHeader hdr =

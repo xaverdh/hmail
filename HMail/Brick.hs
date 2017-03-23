@@ -54,7 +54,7 @@ attributes :: HMailState -> AttrMap
 attributes _ = attrMap defAttr
   $ map (second ($defAttr))
   [ "focused" & style bold
-   ,"new" & fgCol red
+   ,"new" & fgCol green
    ,"header" & style bold . fgCol blue
    ,"banner" & style bold . fgCol yellow . bgCol blue
    ,"body" & id ]

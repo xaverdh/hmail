@@ -4,6 +4,7 @@ module HMail.Brick.MailView where
 import HMail.State
 import HMail.Types
 import HMail.Mail
+import HMail.ImapMail
 import HMail.Header
 import HMail.Brick.EventH
 import HMail.Brick.ViewSwitching
@@ -71,10 +72,10 @@ draw mbox uid fullHdr st =
   . fromMaybe errorWidget $ do
     box <- st ^. mailBoxes . at mbox
     mail <- box ^. mails . at uid
-    Just $ case renderContent (mail ^. mailContent) of 
+    Just $ case renderContent (mail ^. immContent) of 
       Nothing -> loadingWidget
       Just cont -> viewport ResMainViewport Both
-        $ renderHeader (mail ^. mailHeader)
+        $ renderHeader (mail ^. immHeader)
         <=> withAttr "body" cont
   where
     renderContent :: MailContent -> Maybe (Widget ResName)
