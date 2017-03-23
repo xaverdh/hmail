@@ -117,7 +117,6 @@ handleKeyEvent :: Key -> [Modifier] -> EvF
 handleKeyEvent key mods =
   case key of
     KEsc -> haltEventH
-    KChar 'r' -> continueEventH
     KChar 'q' -> haltEventH
     _ -> continueEventH
 

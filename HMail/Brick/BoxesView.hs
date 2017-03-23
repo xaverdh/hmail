@@ -42,6 +42,7 @@ handleKeyEvent :: List ResName MailboxName
   -> Key -> [Modifier] -> EvH ()
 handleKeyEvent lst key mods = case key of
   KEnter -> whenJust (getSelected lst) enterMailBoxView
+  KChar 'r' -> sendCommand ListMailBoxes
   _ -> pure ()
 
 

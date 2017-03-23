@@ -111,12 +111,15 @@ handleKeyEvent :: List ResName (MailMeta,Header)
 handleKeyEvent lst key mods = case key of
   KChar 'y' -> enterBoxesView
   KEnter -> whenJust ( getSelected lst ) $ \(meta,_) -> do
-    mbox <- use $ activeView . boxViewName
+    Just mbox <- preuse $ activeView . boxViewName
     boxes <- use $ mailBoxes
     flip whenJust (enterMailView mbox) $ do
       box <- boxes ^. at mbox
       uid <- meta ^? metaUid
       box ^. mails . at uid -- check that mail exists
       pure uid
+  KChar 'r' -> do
+    Just mbox <- preuse (activeView . boxViewName)
+    sendCommand $ FetchMetasAndHeaders mbox
   _ -> pure ()
 

@@ -1,5 +1,5 @@
-{-# language LambdaCase, OverloadedStrings #-}
-module HMail.Brick.MailView where
+{-# language LambdaCase, OverloadedStrings #-} module
+HMail.Brick.MailView where
 
 import HMail.State
 import HMail.Types
@@ -7,6 +7,7 @@ import HMail.Mail
 import HMail.ImapMail
 import HMail.Header
 import HMail.Brick.EventH
+import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
 
@@ -60,6 +61,10 @@ handleKeyEvent uid key mods = case key of
     enterMailBoxView mbox
   KChar 'f' -> do
     activeView . mailViewShowFullHeader %= not
+  KChar 'r' -> do
+    Just mbox <- preuse (activeView . mailViewBoxName)
+    Just uid <- preuse (activeView . mailViewUid)
+    sendCommand $ FetchContent mbox [uid]
   _ -> pure ()
   where
     haveMod = mods /= []
