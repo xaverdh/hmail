@@ -1,4 +1,5 @@
-{-# language GADTs, TemplateHaskell, KindSignatures, TypeFamilies #-}
+{-# language TemplateHaskell, DeriveGeneric, DeriveAnyClass #-}
+{-# language GADTs, KindSignatures, TypeFamilies #-}
 module HMail.Types where
 
 import HMail.Header
@@ -10,6 +11,7 @@ import Brick.Widgets.List
 
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
+import qualified Data.ByteString as B
 import Data.Monoid
 import Data.Typeable
 import Control.Lens
@@ -19,6 +21,8 @@ import Control.Concurrent.Chan
 import Network.Socket.Internal (PortNumber)
 import Network.HaskellNet.IMAP.Types
 
+import GHC.Generics (Generic)
+import Control.DeepSeq
 import DTypes.TH
 
 
@@ -50,7 +54,7 @@ data Init =
 data HMailState =
   HMailState {
    _mailBoxes :: M.Map MailboxName MailBox
-   ,_errLog :: [String]
+   ,_errorLog :: [String]
    ,_cmdChannel :: Chan Command
    ,_activeView :: View ResName
   }
@@ -82,10 +86,10 @@ data MailBox = MailBox {
   } deriving (Eq,Show)
 
 
-data MailContent = 
+data MailContent =
   ContentIs T.Text
   | ContentUnknown
-  deriving (Eq,Show)
+  deriving (Eq,Show,Generic,NFData)
 
 data MailMeta = 
   MailMeta {

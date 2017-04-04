@@ -37,7 +37,7 @@ hmailMain cmdline = do
   finalState <- customMain
     (mkVty defaultConfig) (Just bchan)
     application (mkInitialState chan)
-  forM (finalState ^. errLog) print
+  forM (finalState ^. errorLog) print
   pure ()
   where
     onErr = error "could not find config data"

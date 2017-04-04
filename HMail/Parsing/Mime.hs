@@ -1,8 +1,9 @@
-{-# language OverloadedStrings #-}
+{-# language OverloadedStrings, LambdaCase #-}
 module HMail.Parsing.Mime where
 
 import HMail.Header
 import HMail.Types
+import HMail.Util
 
 import qualified Network.Mail.Mime as Mime
 import Codec.MIME.Parse
@@ -13,10 +14,12 @@ import Codec.MIME.QuotedPrintable
 import qualified Data.Text.Encoding as Enc
 import qualified Data.Text as T
 import qualified Data.ByteString as B
+import Data.Monoid
 
 import Text.Parser.Combinators
 import Data.Attoparsec.Text
   hiding (choice,sepBy)
+
 
 parseAddr :: T.Text -> Maybe Mime.Address
 parseAddr = either (const Nothing) Just
@@ -41,11 +44,27 @@ mkBody = ContentIs
   . parseMIMEMessage
   . Enc.decodeUtf8
   where
-    extract mime = case mime_val_content mime of
+    extract mime = ($mime_val_content mime) $
+      case mimeType $ mime_val_type mime of
+        Text sub -> extractPlain
+        Multipart Alternative -> extractAlternative
+        Multipart Mixed -> extractPlain
+        typ -> const $ "[-- " <> showT typ <> " --]"
+    
+    extractPlain = \case
       Single content -> convertNewlines content
       Multi vals -> T.unlines $ map extract vals
-
+    
+    extractAlternative = \case
+      Single content -> convertNewlines content
+      Multi vals -> T.unlines $ map extract $ filter isPlain vals 
+    
     convertNewlines = T.replace "\r\n" "\n"
+    
+    isPlain mime =
+      case mimeType $ mime_val_type mime of
+        Text sub -> True
+        _ -> False
 
 
 

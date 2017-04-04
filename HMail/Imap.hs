@@ -19,6 +19,7 @@ import Network.HaskellNet.IMAP.Types
 import qualified Network.HaskellNet.IMAP.SSL as Ssl
 
 import qualified Data.Text as T
+import qualified Data.ByteString as B
 import Data.Default
 import Data.Monoid
 import Data.Maybe
@@ -35,7 +36,7 @@ import Control.Monad.Except
 import Control.Monad.Fail
 import Control.Concurrent
 import qualified Control.Exception as E
-
+import Control.DeepSeq
 
 newtype ImapM a = ImapM
   ( ReaderT IMAPConnection IO a )
@@ -86,9 +87,9 @@ fetchAll mbox action = do
   uids <- liftImapM1 search [ALLs]
   forM uids action
 
-fetchMailContent :: UID -> ImapM MailContent
+fetchMailContent :: UID -> ImapM B.ByteString
 fetchMailContent uid =
-  mkBody <$> liftImapM1 fetch uid
+   liftImapM1 fetch uid
 
 
 fetchMailMeta :: UID -> ImapM MailMeta
@@ -104,23 +105,6 @@ fetchMailMeta uid = do
 fetchMailHeader :: UID -> ImapM Header
 fetchMailHeader uid = do
   parseHeaderOnly <$> liftImapM1 fetchHeader uid
-
-selectCmd :: Command -> ImapM (Maybe ImapEvent)
-selectCmd = \case
-  FetchMetasAndHeaders mbox -> do
-    result (ImapFetchMetasAndHeaders mbox)
-      $ fetchAll mbox
-      ( \uid -> (,)
-        <$> fetchMailMeta uid
-        <*> fetchMailHeader uid )
-  FetchContent mbox uids ->
-    result (ImapFetchContent mbox)
-      $ zip uids <$> forM uids fetchMailContent
-  ListMailBoxes ->
-    result ImapListMailBoxes listMailboxes
-  _ -> error "Invalid command. This did not happen."
-  where
-    result f = fmap (Just . f)
 
 
 imapThread :: Init
@@ -152,7 +136,31 @@ imapThread init outChan inChan =
 fetchCmd :: Chan Command -> ImapM Command
 fetchCmd = liftIO . readChan
 
+writeRes :: BChan ImapEvent -> ImapEvent -> ImapM ()
+writeRes outChan = liftIO . writeBChan outChan
+
 executeCmd :: BChan ImapEvent -> Command -> ImapM ()
-executeCmd outChan cmd =
-  whenJustM (selectCmd cmd)
-    (liftIO . writeBChan outChan)
+executeCmd outChan = \case  
+  FetchMetasAndHeaders mbox -> do
+    dat <- fetchAll mbox
+      ( \uid -> (,)
+        <$> fetchMailMeta uid
+        <*> fetchMailHeader uid )
+    result (ImapFetchMetasAndHeaders mbox) dat
+  FetchContent mbox uids -> do
+    conts <- forM uids fetchMailContent
+    liftIO . forkIO $ parsingThread mbox uids conts
+    pure ()
+  ListMailBoxes ->
+    listMailboxes >>= result ImapListMailBoxes
+  _ -> error "Invalid command. This did not happen."
+  where
+    result :: (a -> ImapEvent) -> a -> ImapM () 
+    result f = writeRes outChan . f
+
+    parsingThread mbox uids conts = do
+      conts' <- E.evaluate $ force $ map mkBody conts
+      writeBChan outChan $
+        (ImapFetchContent mbox) $ zip uids conts'
+
+

@@ -54,7 +54,10 @@ storeMailBoxes boxData = mailBoxes .= M.fromList boxData
   -- M.union (M.fromList boxData)
 
 logErr :: (MonadState HMailState m,Exception e) => e -> m ()
-logErr err = errLog %= (show err:)
+logErr err = errorLog %= (show err:)
+
+logDebug :: MonadState HMailState m => String -> m ()
+logDebug s = errorLog %= (s:)
 
 updateBoxesView :: MonadState HMailState m => m ()
 updateBoxesView = do
@@ -75,7 +78,6 @@ updateMailBoxView = do
       $ st ^. mailBoxes . ix (name st) . mails
     extractElem mail = (mail ^. immMeta,mail ^. immHeader)
 
-updateMailView :: MonadState HMailState m => m ()
-updateMailView = pure ()
+
 
 

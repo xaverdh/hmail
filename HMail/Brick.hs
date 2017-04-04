@@ -102,7 +102,6 @@ handleImapEvent = \case
     continueEventH
   ImapFetchContent mbox conts -> do
     storeContents mbox conts
-    updateMailView
     continueEventH
   ImapListMailBoxes boxData -> do
     storeMailBoxes boxData
