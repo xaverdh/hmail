@@ -13,3 +13,9 @@ cabal sandbox add-source dtypes dtypes-extra mime HaskellNet
 cabal install --ghc-option=-threaded
 ```
 
+There is a [build script][hmail-build-script] automating this.
+
+
+
+
+[hmail-build-script]: https://gitlab.com/xaverdh/hmail/blob/master/build
