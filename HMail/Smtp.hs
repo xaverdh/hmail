@@ -3,7 +3,6 @@ module HMail.Smtp (
 ) where
 
 import Network.HaskellNet.SMTP.SSL
--- import Network.HaskellNet.SMTP
 
 import Control.Monad
 import qualified Network.Mail.Mime as Mime
@@ -28,7 +27,7 @@ smtpThread mail init =
         (init ^. smtpPassword) con
       if not success
         then error "authentification failed"
-        else sendMimeMail2 mail con
+        else sendMail mail con
   where
     settings = defaultSettingsSMTPSSL {
         sslPort = init ^. stmpPort
