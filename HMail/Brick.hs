@@ -100,8 +100,8 @@ handleImapEvent = \case
     storeMetasAndHeaders mbox metasAndHeaders
     updateMailBoxView
     continueEventH
-  ImapFetchContent mbox conts -> do
-    storeContents mbox conts
+  ImapFetchContent mbox uid cont -> do
+    storeContent mbox uid cont
     continueEventH
   ImapListMailBoxes boxData -> do
     storeMailBoxes boxData

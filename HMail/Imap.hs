@@ -148,8 +148,9 @@ executeCmd outChan = \case
         <*> fetchMailHeader uid )
     result (ImapFetchMetasAndHeaders mbox) dat
   FetchContent mbox uids -> do
-    conts <- forM uids fetchMailContent
-    liftIO . forkIO $ parsingThread mbox uids conts
+    forM uids $ \uid -> do
+      cont <- fetchMailContent uid
+      liftIO . forkIO $ parsingThread mbox uid cont
     pure ()
   ListMailBoxes ->
     listMailboxes >>= result ImapListMailBoxes
@@ -158,9 +159,9 @@ executeCmd outChan = \case
     result :: (a -> ImapEvent) -> a -> ImapM () 
     result f = writeRes outChan . f
 
-    parsingThread mbox uids conts = do
-      conts' <- E.evaluate $ force $ map mkBody conts
+    parsingThread mbox uid cont = do
+      cont' <- E.evaluate $ force $ mkBody cont
       writeBChan outChan $
-        (ImapFetchContent mbox) $ zip uids conts'
+        ImapFetchContent mbox uid cont'
 
 

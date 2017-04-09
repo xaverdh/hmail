@@ -28,7 +28,7 @@ import DTypes.TH
 
 data ImapEvent where
   ImapFetchMetasAndHeaders :: MailboxName -> [(MailMeta,Header)] -> ImapEvent
-  ImapFetchContent :: MailboxName -> [(UID,MailContent)] -> ImapEvent
+  ImapFetchContent :: MailboxName -> UID -> MailContent -> ImapEvent
   ImapListMailBoxes :: [(MailboxName,MailBox)] -> ImapEvent
   ImapError :: Exception e => e -> ImapEvent
 
