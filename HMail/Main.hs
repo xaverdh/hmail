@@ -23,6 +23,7 @@ import Control.Monad.Writer
 import Control.Concurrent
 import Control.Concurrent.Chan
 import System.Environment
+import System.IO
 
 import Data.Monoid
 import Data.Maybe
@@ -37,7 +38,7 @@ hmailMain cmdline = do
   finalState <- customMain
     (mkVty defaultConfig) (Just bchan)
     application (mkInitialState chan)
-  forM (finalState ^. errorLog) print
+  forM (finalState ^. errorLog) (hPutStrLn stderr)
   pure ()
   where
     onErr = error "could not find config data"
