@@ -35,9 +35,10 @@ hmailMain cmdline = do
   bchan <- newBChan 10
   chan <- newChan
   forkIO $ imapThread init bchan chan
+  initVty <- mkVty defaultConfig
   finalState <- customMain
-    (mkVty defaultConfig) (Just bchan)
-    application (mkInitialState chan)
+    initVty (mkVty defaultConfig)
+    (Just bchan) application (mkInitialState chan)
   forM (finalState ^. errorLog) (hPutStrLn stderr)
   pure ()
   where
