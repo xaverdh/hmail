@@ -59,6 +59,7 @@ handleKeyEvent uid key mods = case key of
     else hScrollBy vp 1
   KPageUp -> liftBase $ vScrollToBeginning vp
   KPageDown -> liftBase $ vScrollToEnd vp
+  KChar ' ' -> liftBase $ vScrollPage vp Down
   KChar 'y' -> do
     mbox <- use $ activeView . mailViewBoxName
     enterMailBoxView mbox
