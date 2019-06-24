@@ -27,7 +27,7 @@ import Text.Parser.Combinators
 import Data.Attoparsec.Text
   hiding (choice,sepBy)
 import Data.Attoparsec.ByteString (takeByteString)
-import Debug.Trace
+
 
 parseAddr :: T.Text -> Maybe Mime.Address
 parseAddr = either (const Nothing) Just
@@ -58,8 +58,7 @@ parseMail bs = do
     }
   where
     eitherToMaybe :: Show a => Either a b -> Maybe b
-    eitherToMaybe = either (error . show) Just
-    -- eitherToMaybe = either (const Nothing) Just
+    eitherToMaybe = either (const Nothing) Just
 
 getAttachmentsMaybe :: MIMEMessage -> Maybe [(B.ByteString, T.Text)]
 getAttachmentsMaybe = acc . getAttachments
