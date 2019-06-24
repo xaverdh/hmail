@@ -23,8 +23,8 @@ import Control.Monad.State.Class
 storeMetaAndHeader :: MonadState HMailState m
   => MailboxName -> (MailMeta,Header) -> m ()
 storeMetaAndHeader mbox (meta,hdr) =
-  case meta ^? metaUid of
-    Just uid -> mailLens uid %= Just . f
+  let uid = meta ^. metaUid
+   in mailLens uid %= Just . f
   where
     f = maybe (ImapMail.mkEmpty meta hdr)
       ( (immMeta .~ meta)
