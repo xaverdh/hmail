@@ -79,18 +79,18 @@ draw mbox uid fullHdr st =
     mail <- box ^. mails . at uid
     Just $ case renderContent (mail ^. immContent) of 
       Nothing -> loadingWidget
-      Just cont -> viewport ResMainViewport Both
+      Just cont -> viewport ResMainViewport Vertical
         $ renderHeader (mail ^. immHeader)
         <=> withAttr "body" cont
   where
     renderContent :: MailContent -> Maybe (Widget ResName)
     renderContent = \case
-      ContentIs content -> Just $ txt content
+      ContentIs content -> Just $ txtWrap content
       ContentUnknown -> Nothing
 
     renderHeader :: Header -> Widget ResName
     renderHeader = 
-      let f key val wgt = txt (key <> ":" <> val) <=> wgt
+      let f key val wgt = txtWrap (key <> ":" <> val) <=> wgt
        in withAttr "header"
         . M.foldrWithKey f emptyWidget
         . (if fullHdr then id else M.filterWithKey important)
@@ -100,8 +100,8 @@ draw mbox uid fullHdr st =
     important key _ = key `elem`
       [ "Date", "From", "Subject", "To", "User-Agent" ]
     
-    loadingWidget = center . border $ txt "LOADING..."
-    errorWidget = center . border $ txt "an ERROR ocurred – sorry"
+    loadingWidget = center . border $ txtWrap "LOADING..."
+    errorWidget = center . border $ txtWrap "an ERROR ocurred – sorry"
     
 
 mailViewHelp :: [String]        
