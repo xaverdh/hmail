@@ -20,9 +20,9 @@ import qualified Data.ByteString as B
 import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
 
-import Codec.MIME.Parse
-import Codec.MIME.Type
-import Codec.MIME.QuotedPrintable
+-- import Codec.MIME.Parse
+-- import Codec.MIME.Type
+-- import Codec.MIME.QuotedPrintable
 
 import qualified Network.Mail.Mime as Mime
 

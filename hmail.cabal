@@ -35,7 +35,10 @@ executable hmail
   build-depends:       parsers, attoparsec, word8
   build-depends:       directory, filepath, lens, extra, transformers-base
   build-depends:       dtypes, dtypes-extra, template-haskell, deepseq
-  build-depends:       HaskellNet, HaskellNet-SSL, mime, mime-mail, text-icu
+  build-depends:       HaskellNet, HaskellNet-SSL
+  build-depends:       purebred-email, case-insensitive
+  build-depends:       mime-mail
+  build-depends:       text-icu
   build-depends:       vty, brick, vector, libnotify, optparse-applicative
   -- hs-source-dirs:      
   default-language:    Haskell2010

@@ -102,7 +102,7 @@ data MailMeta =
 data Mail = Mail {
    _mailContent :: MailContent
   ,_mailHeader :: Header
-  } deriving (Eq,Show)
+  } deriving (Eq,Show,NFData,Generic)
 
 data ImapMail =
   ImapMail {

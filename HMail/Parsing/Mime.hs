@@ -1,25 +1,36 @@
 {-# language OverloadedStrings, LambdaCase #-}
 module HMail.Parsing.Mime where
 
-import HMail.Header
+import HMail.Header as H
 import HMail.Types
 import HMail.Util
 
 import qualified Network.Mail.Mime as Mime
-import Codec.MIME.Parse
-import Codec.MIME.Type
-import Codec.MIME.QuotedPrintable
-
+-- import Codec.MIME.Parse
+-- import Codec.MIME.Type
+-- import Codec.MIME.QuotedPrintable
+import Data.RFC5322
+import Data.MIME
+import Data.MIME.TransferEncoding
 
 import qualified Data.Text.Encoding as Enc
 import qualified Data.Text as T
 import qualified Data.ByteString as B
 import Data.Semigroup
+import Data.Either
+import qualified Data.Map.Lazy as M
+import Data.Bifunctor
+import qualified Data.CaseInsensitive as CI
+
+import Control.Lens
+import Control.Applicative
+import Control.Monad
 
 import Text.Parser.Combinators
 import Data.Attoparsec.Text
   hiding (choice,sepBy)
-
+import Data.Attoparsec (takeByteString)
+import Debug.Trace
 
 parseAddr :: T.Text -> Maybe Mime.Address
 parseAddr = either (const Nothing) Just
@@ -29,42 +40,53 @@ parseAddrs :: T.Text -> Maybe [Mime.Address]
 parseAddrs = either (const Nothing) Just
   . parseOnly (addrsP <* endOfInput)
 
+
+parseHeaderOnly :: B.ByteString -> Maybe H.Header
+parseHeaderOnly bs = 
+  case Data.MIME.parse (message (const takeByteString)) bs of
+    Left err -> Nothing
+    Right msg -> Just . package
+      $ map (first CI.original) $ view headerList msg
+
 parseMail :: B.ByteString -> Maybe Mail
 parseMail bs = do
-  (hdr,rst) <- parseHeader bs
+  msg <- eitherToMaybe $ Data.MIME.parse (message mime) bs
+  -- msg :: Message () B.ByteString
+  attachmnts <- getAttachmentsMaybe msg
+  wire <- getTextPlain msg
+  bdy <- eitherToMaybe $ extractTextEnt wire
   pure Mail {
-      _mailContent = mkBody rst
-     ,_mailHeader = hdr
+      _mailContent = ContentIs $ view body bdy
+     ,_mailHeader = Header . M.fromList $ attachmnts
     }
-
-
-mkBody :: B.ByteString -> MailContent
-mkBody = ContentIs
-  . extract
-  . parseMIMEMessage
-  . Enc.decodeUtf8
   where
-    extract mime = ($mime_val_content mime) $
-      case mimeType $ mime_val_type mime of
-        Text sub -> extractPlain
-        Multipart Alternative -> extractAlternative
-        Multipart Mixed -> extractPlain
-        typ -> const $ "[-- " <> showT typ <> " --]"
-    
-    extractPlain = \case
-      Single content -> convertNewlines content
-      Multi vals -> T.unlines $ map extract vals
-    
-    extractAlternative = \case
-      Single content -> convertNewlines content
-      Multi vals -> T.unlines $ map extract $ filter isPlain vals 
-    
-    convertNewlines = T.replace "\r\n" "\n"
-    
-    isPlain mime =
-      case mimeType $ mime_val_type mime of
-        Text sub -> True
-        _ -> False
+    eitherToMaybe :: Show a => Either a b -> Maybe b
+    eitherToMaybe = either (error . show) Just
+    -- eitherToMaybe = either (const Nothing) Just
+
+getAttachmentsMaybe :: MIMEMessage -> Maybe [(B.ByteString, T.Text)]
+getAttachmentsMaybe = acc . getAttachments
+  where
+    acc [] = Just []
+    acc ((keyOrErr,maybeVal):ms) = case keyOrErr of
+      Left err -> Nothing
+      Right key -> case maybeVal of
+        Just val -> ((key,val):) <$> acc ms
+        Nothing -> Nothing
+
+getAttachments :: MIMEMessage -> [(Either EncodingError B.ByteString, Maybe T.Text)]
+getAttachments = toListOf $ attachments . to (liftA2 (,) content name)
+  where
+    content = view transferDecodedBytes
+    name = preview (headers . contentDisposition . filename)
+
+extractTextEnt :: WireEntity -> Either EncodingError TextEntity
+extractTextEnt = view transferDecoded >=> view charsetDecoded
+
+getTextPlain :: MIMEMessage -> Maybe WireEntity
+getTextPlain = firstOf (entities . filtered f)
+  where
+  f = matchContentType "text" (Just "plain") . view (headers . contentType)
 
 
 

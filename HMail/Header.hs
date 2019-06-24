@@ -1,4 +1,4 @@
-{-# language LambdaCase, TupleSections, OverloadedStrings, TemplateHaskell #-}
+{-# language LambdaCase, TupleSections, OverloadedStrings, TemplateHaskell, GeneralizedNewtypeDeriving #-}
 module HMail.Header where
 
 import Prelude hiding (take)
@@ -6,6 +6,8 @@ import Prelude hiding (take)
 import Control.Lens
 import Control.Applicative
 import Control.Monad
+import Control.DeepSeq
+
 import Data.Functor
 import Data.Bifunctor
 import Data.Maybe
@@ -14,7 +16,7 @@ import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as Enc
 import qualified Data.ByteString as B
-
+-- import Data.CaseInsensitive (CI)
 -- import Data.Attoparsec.ByteString
 import Data.Attoparsec.ByteString.Char8
 
@@ -24,10 +26,9 @@ type HeaderPart = B.ByteString
 newtype Header = Header {
     _headerMap :: M.Map HeaderPart T.Text
   }
-  deriving (Eq,Show)
+  deriving (Eq,Show,NFData)
 
 makeLenses ''Header
-
 
 asTextMap :: Header -> M.Map T.Text T.Text
 asTextMap (Header mp) = M.mapKeys Enc.decodeUtf8 mp
@@ -35,6 +36,8 @@ asTextMap (Header mp) = M.mapKeys Enc.decodeUtf8 mp
 package :: [(B.ByteString,B.ByteString)] -> Header
 package = Header . M.fromList
   . map (bimap id Enc.decodeUtf8)
+
+{-
 
 parseHeaderOnly :: B.ByteString -> Header
 parseHeaderOnly = package
@@ -61,7 +64,7 @@ headerP = many $ lineP where
         <|> pure ""
       )
     pure (t <> ts)
-
+-}
 
 serialiseHeader :: Header -> B.ByteString
 serialiseHeader hdr =

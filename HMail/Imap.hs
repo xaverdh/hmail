@@ -8,7 +8,7 @@ import HMail.Types
 import HMail.Header
 import HMail.Mail
 import HMail.State
-import HMail.Parsing.Mime (mkBody)
+import HMail.Parsing.Mime (parseMail,parseHeaderOnly)
 
 import Brick.BChan
 
@@ -104,7 +104,10 @@ fetchMailMeta uid = do
 
 fetchMailHeader :: UID -> ImapM Header
 fetchMailHeader uid = do
-  parseHeaderOnly <$> liftImapM1 fetchHeader uid
+  raw <- liftImapM1 fetchHeader uid
+  let Just hdr = parseHeaderOnly raw
+  pure hdr
+
 
 
 imapThread :: Init
@@ -160,8 +163,8 @@ executeCmd outChan = \case
     result f = writeRes outChan . f
 
     parsingThread mbox uid cont = do
-      cont' <- E.evaluate $ force $ mkBody cont
+      Just mail <- E.evaluate $ force $ parseMail cont
       writeBChan outChan $
-        ImapFetchContent mbox uid cont'
+        ImapFetchContent mbox uid (view mailContent mail)
 
 
