@@ -79,7 +79,8 @@ hmailImapOptions = F.fold
   [ hostOpt d_imapHostnamel (long "imap-hostname" <> metavar "HOST"
     <> help "The (imap) host to connect to")
   , portOpt d_imapPortl (long "imap-port" <> metavar "PORT"
-    <> help "The (imap) port to connect to")
+    <> value 993 <> help "The (imap) port to connect to"
+    <> showDefault )
   , userOpt d_imapUsernamel (long "imap-username" <> metavar "USER"
     <> help "The username of the (imap) account to log into")
   , passOpt d_imapPasswordl (long "imap-password" <> metavar "PWD"
