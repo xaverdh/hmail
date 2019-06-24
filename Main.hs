@@ -34,29 +34,19 @@ instance Monoid a => Monoid (OA.Parser a) where
 
 
 main :: IO ()
-main = do
-  args <- liftIO getArgs
-  parseCmdline args
+main = parseCmdline
 
 
 -- TODO
 otherMain :: () -> IO ()
 otherMain _ = pure ()
 
-parseCmdline :: [String] -> IO ()
-parseCmdline args = do
-  case execParserPure OB.defaultPrefs parser args of
-    Success a -> a
-    Failure e -> showError e >> exitWith (ExitFailure 1)
+parseCmdline :: IO ()
+parseCmdline = join $ customExecParser prefs parser
   where
-    showError :: ParserFailure ParserHelp -> IO ()
-    showError e = putStrLn . fst
-      $ renderFailure e ""
-
-    conf = OB.defaultPrefs {
-      prefDisambiguate = True
-      ,prefShowHelpOnError = True
-    }
+    prefs = OB.defaultPrefs
+      { prefDisambiguate = True
+      , prefShowHelpOnError = True }
 
     parser = info (helper <*> hmailOptions)
       (fullDesc
