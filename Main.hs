@@ -96,11 +96,11 @@ hmailSmtpOptions = F.fold
   , passOpt d_smtpPasswordl (long "smtp-password" <> metavar "PWD"
     <> help "The password for the (smtp) account") ]
 
-genOpt f l = fmap (maybe mempty $ fromLens l . f) . optional . option str
+genOpt f l = fmap (maybe mempty $ fromLens l . f) . optional . OB.option str
 hostOpt = genOpt Hostname
 userOpt = genOpt Username
 passOpt = genOpt Password
-portOpt l = fmap (maybe mempty $ fromLens l . Port) . optional . option
+portOpt l = fmap (maybe mempty $ fromLens l . Port) . optional . OB.option
   (maybeReader $ fmap fromInteger . readMaybe)
 
 
