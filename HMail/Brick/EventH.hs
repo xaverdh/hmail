@@ -8,6 +8,7 @@ import Control.Monad.Trans (lift)
 import Control.Monad.Base
 import Control.Monad.State
 import Control.Monad.State.Class
+import Control.Monad.Fail
 
 newtype EventH s n a = EventH {
     extractEventH :: StateT s (EventM n) a
@@ -21,6 +22,10 @@ newtype EventH s n a = EventH {
 
 instance MonadBase (EventM n) (EventH s n) where
   liftBase m = EventH $ lift m
+
+-- FIXME: remove this
+instance MonadFail (EventH s n) where
+  fail = error
 
 runEventH :: EventH s n a -> s -> EventM n (a,s)
 runEventH = runStateT . extractEventH
