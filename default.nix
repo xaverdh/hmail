@@ -31,4 +31,5 @@ let
 in pkgs.haskell.lib.appendConfigureFlags
   ( hmail.override { inherit HaskellNet; } )
   [ "--ghc-option=-threaded"
-    "--ghc-option=-O2" ]
+    "--ghc-option=-O2"
+    "--ghc-option=-Wincomplete-patterns" ]

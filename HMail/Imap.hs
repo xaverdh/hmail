@@ -157,7 +157,6 @@ executeCmd outChan = \case
     pure ()
   ListMailBoxes ->
     listMailboxes >>= result ImapListMailBoxes
-  _ -> error "Invalid command. This did not happen."
   where
     result :: (a -> ImapEvent) -> a -> ImapM () 
     result f = writeRes outChan . f
