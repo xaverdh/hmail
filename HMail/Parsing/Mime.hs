@@ -6,9 +6,6 @@ import HMail.Types
 import HMail.Util
 
 import qualified Network.Mail.Mime as Mime
--- import Codec.MIME.Parse
--- import Codec.MIME.Type
--- import Codec.MIME.QuotedPrintable
 import Data.RFC5322
 import Data.MIME
 import Data.MIME.TransferEncoding

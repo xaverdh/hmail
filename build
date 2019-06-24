@@ -8,5 +8,5 @@ git clone https://gitlab.com/xaverdh/dtypes-extra
 git clone -b patchwork https://gitlab.com/xaverdh/mime
 git clone -b patchwork https://gitlab.com/xaverdh/HaskellNet
 cabal sandbox init
-cabal sandbox add-source dtypes dtypes-extra mime HaskellNet
+cabal sandbox add-source dtypes dtypes-extra HaskellNet
 cabal install --ghc-options='-threaded -j4 -O2'
