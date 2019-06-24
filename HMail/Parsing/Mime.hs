@@ -26,7 +26,7 @@ import Control.Monad
 import Text.Parser.Combinators
 import Data.Attoparsec.Text
   hiding (choice,sepBy)
-import Data.Attoparsec (takeByteString)
+import Data.Attoparsec.ByteString (takeByteString)
 import Debug.Trace
 
 parseAddr :: T.Text -> Maybe Mime.Address
