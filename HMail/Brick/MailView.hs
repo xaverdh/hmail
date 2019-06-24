@@ -24,10 +24,13 @@ import Graphics.Vty.Input.Events
 import Control.Lens
 import Control.Monad
 import Control.Monad.Base
+import Control.Monad.IO.Class
 import Data.Semigroup
 import Data.Maybe
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
+
+import qualified System.IO as IO
 
 handleEvent :: UID
   -> BrickEvent ResName e
@@ -65,7 +68,8 @@ handleKeyEvent uid key mods = case key of
     Just mbox <- preuse (activeView . mailViewBoxName)
     Just uid <- preuse (activeView . mailViewUid)
     sendCommand $ FetchContent mbox [uid]
-  _ -> pure ()
+  key -> liftIO . IO.hPutStrLn IO.stderr
+    $ "unbound key pressed: " <> show key
   where
     haveMod = mods /= []
     vp = viewportScroll ResMainViewport
