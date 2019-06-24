@@ -25,7 +25,7 @@ import Control.Concurrent.Chan
 import System.Environment
 import System.IO
 
-import Data.Monoid
+import Data.Semigroup
 import Data.Maybe
 
 

@@ -32,7 +32,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Concurrent
-import Data.Monoid
+import Data.Semigroup
 import Data.Maybe
 import Data.Bifunctor
 import qualified Data.Foldable as F

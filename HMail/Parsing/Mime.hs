@@ -14,7 +14,7 @@ import Codec.MIME.QuotedPrintable
 import qualified Data.Text.Encoding as Enc
 import qualified Data.Text as T
 import qualified Data.ByteString as B
-import Data.Monoid
+import Data.Semigroup
 
 import Text.Parser.Combinators
 import Data.Attoparsec.Text

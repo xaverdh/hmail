@@ -25,7 +25,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Base
 import Control.Monad.Extra
-import Data.Monoid
+import Data.Semigroup
 
 handleEvent :: List ResName MailboxName
   -> BrickEvent ResName e -> EvH ()

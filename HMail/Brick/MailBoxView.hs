@@ -27,7 +27,7 @@ import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.Base
 
-import Data.Monoid
+import Data.Semigroup
 import Data.Maybe
 import Data.Bool
 import qualified Data.Text as T

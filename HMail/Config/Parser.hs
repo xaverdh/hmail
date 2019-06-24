@@ -19,7 +19,7 @@ import System.Directory
 import System.FilePath
 
 import qualified Data.Foldable as F
-import Data.Monoid
+import Data.Semigroup
 import qualified Data.ByteString as B
 
 import Text.Parser.Combinators

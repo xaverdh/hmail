@@ -9,7 +9,7 @@ import Control.Monad
 import Data.Functor
 import Data.Bifunctor
 import Data.Maybe
-import Data.Monoid
+import Data.Semigroup
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as Enc

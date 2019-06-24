@@ -9,7 +9,7 @@ import Control.Lens
 import Control.Applicative
 import Control.Monad
 import Data.Maybe
-import Data.Monoid
+import Data.Semigroup
 import Data.Functor
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T

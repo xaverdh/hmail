@@ -21,7 +21,7 @@ import qualified Network.HaskellNet.IMAP.SSL as Ssl
 import qualified Data.Text as T
 import qualified Data.ByteString as B
 import Data.Default
-import Data.Monoid
+import Data.Semigroup
 import Data.Maybe
 import qualified Data.List as L
 import qualified Data.Foldable as F

@@ -24,7 +24,7 @@ import Graphics.Vty.Input.Events
 import Control.Lens
 import Control.Monad
 import Control.Monad.Base
-import Data.Monoid
+import Data.Semigroup
 import Data.Maybe
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
