@@ -4,8 +4,6 @@ module HMail.Brick.Init (
 
 import HMail.Types
 import Control.Concurrent.Chan
-import Data.Semigroup
-import Data.Map.Lazy as M
 import Brick.Widgets.List
 
 

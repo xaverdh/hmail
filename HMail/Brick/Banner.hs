@@ -4,7 +4,6 @@ module HMail.Brick.Banner where
 import Brick.Types
 import Brick.Widgets.Core
 import Brick.Widgets.Center
-import Data.Semigroup
 
 banner :: [String] -> Widget n
 banner help = withAttr "banner"

@@ -3,37 +3,24 @@
 {-# language FlexibleContexts, GeneralizedNewtypeDeriving #-}
 module HMail.Imap where
 
-import HMail.Util
 import HMail.Types
 import HMail.Header
-import HMail.Mail
-import HMail.State
 import HMail.Parsing.Mime (parseMail,parseHeaderOnly)
 
 import Brick.BChan
 
-import Network.Socket.Internal (PortNumber)
 import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Connection
 import Network.HaskellNet.IMAP.Types
 import qualified Network.HaskellNet.IMAP.SSL as Ssl
 
-import qualified Data.Text as T
 import qualified Data.ByteString as B
-import Data.Default
-import Data.Semigroup
-import Data.Maybe
-import qualified Data.List as L
-import qualified Data.Foldable as F
 
 import Control.Lens
 import Control.Monad
 import Control.Monad.Base
 import Control.Monad.Trans
-import Control.Monad.Extra
 import Control.Monad.Reader
-import Control.Monad.Except
-import Control.Monad.Fail
 import Control.Concurrent
 import qualified Control.Exception as E
 import Control.DeepSeq
@@ -150,11 +137,10 @@ executeCmd outChan = \case
         <$> fetchMailMeta uid
         <*> fetchMailHeader uid )
     result (ImapFetchMetasAndHeaders mbox) dat
-  FetchContent mbox uids -> do
-    forM uids $ \uid -> do
+  FetchContent mbox uids ->
+    void $ forM uids $ \uid -> do
       cont <- fetchMailContent uid
       liftIO . forkIO $ parsingThread mbox uid cont
-    pure ()
   ListMailBoxes ->
     listMailboxes >>= result ImapListMailBoxes
   where

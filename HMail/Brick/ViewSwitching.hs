@@ -2,20 +2,15 @@
 module HMail.Brick.ViewSwitching where
 
 import HMail.Types
-import HMail.View
 import HMail.Header
-import HMail.Mail
 import HMail.ImapMail
-import HMail.Brick.EventH
 import HMail.Brick.Util
 
-import Brick.Widgets.Core
 import Brick.Widgets.List
 
 import Network.HaskellNet.IMAP.Types
 
 import Control.Lens
-import Control.Monad
 import Control.Monad.Extra
 
 import qualified Data.Vector as V

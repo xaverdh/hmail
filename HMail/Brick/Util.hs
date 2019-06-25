@@ -1,16 +1,11 @@
 {-# language LambdaCase #-}
 module HMail.Brick.Util where
 
-import HMail.Brick.EventH
 import HMail.Types
 
-import Brick.Main
-import Brick.Types
 import Brick.Widgets.List
 
 import Control.Lens
-import Control.Monad
-import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Concurrent.Chan
 

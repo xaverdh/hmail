@@ -1,13 +1,10 @@
 {-# language LambdaCase, OverloadedStrings #-} module
 HMail.Brick.MailView where
 
-import HMail.State
 import HMail.Types
 import HMail.View
-import HMail.Mail
 import HMail.ImapMail
 import HMail.Header
-import HMail.Brick.EventH
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
@@ -18,15 +15,12 @@ import Brick.Widgets.Core
 import Brick.Widgets.Center
 import Brick.Widgets.Border
 
-import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
 import Control.Lens
-import Control.Monad
 import Control.Monad.Base
 import Control.Monad.IO.Class
-import Data.Semigroup
 import Data.Maybe
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T

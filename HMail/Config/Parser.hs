@@ -14,12 +14,10 @@ import Control.Monad.IO.Class
 import Control.Monad.Writer
 import qualified Control.Exception as E
 
-import System.IO
 import System.Directory
 import System.FilePath
 
 import qualified Data.Foldable as F
-import Data.Semigroup
 import qualified Data.ByteString as B
 
 import Text.Parser.Combinators

@@ -1,7 +1,6 @@
 {-# language LambdaCase, FlexibleContexts #-}
 module HMail.State where
 
-import HMail.Mail
 import HMail.ImapMail as ImapMail
 import HMail.Types
 import HMail.View
@@ -14,10 +13,8 @@ import Brick.Widgets.List
 
 import qualified Data.Map.Lazy as M
 import qualified Data.Vector as V
-import qualified Data.Foldable as F
 import Control.Lens
 import Control.Exception
-import Control.Concurrent.Chan
 import Control.Monad.State.Class
 
 

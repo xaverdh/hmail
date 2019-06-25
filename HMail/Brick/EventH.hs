@@ -7,7 +7,6 @@ import Brick.Types
 import Control.Monad.Trans (lift)
 import Control.Monad.Base
 import Control.Monad.State
-import Control.Monad.State.Class
 
 newtype EventH s n a = EventH {
     extractEventH :: StateT s (EventM n) a

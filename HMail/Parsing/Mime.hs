@@ -3,18 +3,14 @@ module HMail.Parsing.Mime where
 
 import HMail.Header as H
 import HMail.Types
-import HMail.Util
 
 import qualified Network.Mail.Mime as Mime
 import Data.RFC5322
 import Data.MIME
 import Data.MIME.TransferEncoding
 
-import qualified Data.Text.Encoding as Enc
 import qualified Data.Text as T
 import qualified Data.ByteString as B
-import Data.Semigroup
-import Data.Either
 import qualified Data.Map.Lazy as M
 import Data.Bifunctor
 import qualified Data.CaseInsensitive as CI

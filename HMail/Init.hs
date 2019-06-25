@@ -1,15 +1,15 @@
 {-# language TypeFamilies, Rank2Types #-}
 module HMail.Init where
 
-import HMail.Types
+-- import HMail.Types
 
-import DTypes
-import DTypes.Collect
-import DTypes.Instances.AlternativeInducesMonoid
+-- import DTypes
+-- import DTypes.Collect
+-- import DTypes.Instances.AlternativeInducesMonoid
 
 import Control.Lens
 import Control.Monad.Writer
-import Data.Bifunctor
+-- import Data.Bifunctor
 
 type Assemble d a = WriterT (d Maybe) IO a
 

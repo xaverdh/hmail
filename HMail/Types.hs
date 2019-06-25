@@ -12,8 +12,6 @@ import Brick.Widgets.List
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 import qualified Data.ByteString as B
-import Data.Semigroup
-import Data.Typeable
 import Control.Lens
 import Control.Exception
 import Control.Concurrent.Chan

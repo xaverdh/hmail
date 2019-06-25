@@ -5,14 +5,11 @@ module HMail.Brick.BoxesView (
 ) where
 
 import HMail.Types
-import HMail.Mail
-import HMail.Brick.EventH
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
 
 import Brick.Types
-import Brick.Main
 import Brick.Widgets.Core
 import Brick.Widgets.List
 import Brick.Widgets.Center
@@ -22,10 +19,9 @@ import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
 import Control.Lens
-import Control.Monad
 import Control.Monad.Base
 import Control.Monad.Extra
-import Data.Semigroup
+
 
 handleEvent :: MailBoxesView ResName
   -> BrickEvent ResName e -> EvH ()
@@ -43,7 +39,7 @@ handleEvent (MailBoxesView lst) = \case
 
 handleKeyEvent :: List ResName MailboxName
   -> Key -> [Modifier] -> EvH ()
-handleKeyEvent lst key mods = case key of
+handleKeyEvent lst key _ = case key of
   KEnter -> whenJust (getSelected lst) enterMailBoxView
   KChar 'r' -> sendCommand ListMailBoxes
   _ -> pure ()
@@ -51,7 +47,7 @@ handleKeyEvent lst key mods = case key of
 
 draw :: MailBoxesView ResName
   -> HMailState -> Widget ResName
-draw (MailBoxesView lst) st =
+draw (MailBoxesView lst) _ =
   banner genericHelp
   <=> renderList renderMBox True lst
   where

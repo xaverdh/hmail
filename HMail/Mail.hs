@@ -6,19 +6,9 @@ import HMail.Header
 import HMail.Parsing.Mime
 
 import Control.Lens
-import Control.Applicative
-import Control.Monad
-import Data.Maybe
-import Data.Semigroup
-import Data.Functor
 import qualified Data.Map.Lazy as M
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as Enc
 import qualified Data.ByteString as B
-
-
-import Network.HaskellNet.IMAP
-import Network.HaskellNet.IMAP.Types
 
 import qualified Network.Mail.Mime as Mime
 
