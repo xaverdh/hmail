@@ -1,8 +1,9 @@
 { pkgs ? import <nixpkgs> {}
+, haskellPackages ? pkgs.haskellPackages
 , ref ? "master"
 }:
 let
-  callCabal2nix = pkgs.haskellPackages.callCabal2nix;
+  callCabal2nix = haskellPackages.callCabal2nix;
 
   fromXaverDH = attrs: pkgs.fetchFromGitLab
     (attrs // { owner = "xaverdh"; });
