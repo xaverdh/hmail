@@ -4,27 +4,14 @@ import HMail.Types
 import HMail.Init
 import HMail.Main (hmailMain)
 
-import DTypes
-import DTypes.Collect
-import DTypes.Instances.AlternativeInducesMonoid
-
-
-import Control.Lens
 import Control.Applicative
 import Control.Monad
-import Control.Monad.Writer
-import Control.Concurrent
-import Control.Concurrent.Chan
-import System.Environment
-import System.Exit
-import Data.Semigroup
-import Data.Maybe
 import qualified Data.Foldable as F
 import Text.Read (readMaybe)
 
 import Options.Applicative as OA
 import Options.Applicative.Builder as OB
-import Options.Applicative.Help.Types (ParserHelp)
+-- import Options.Applicative.Help.Types (ParserHelp)
 
 instance Semigroup a => Semigroup (OA.Parser a) where
   (<>) = liftA2 (<>)
@@ -42,9 +29,9 @@ otherMain :: () -> IO ()
 otherMain _ = pure ()
 
 parseCmdline :: IO ()
-parseCmdline = join $ customExecParser prefs parser
+parseCmdline = join $ customExecParser hmailPrefs parser
   where
-    prefs = OB.defaultPrefs
+    hmailPrefs = OB.defaultPrefs
       { prefDisambiguate = True
       , prefShowHelpOnError = True }
 

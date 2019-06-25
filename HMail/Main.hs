@@ -3,12 +3,10 @@ module HMail.Main where
 import HMail.Brick (application)
 import HMail.Brick.Init (mkInitialState)
 import HMail.Imap (imapThread)
-import HMail.State
 import HMail.Types
 import HMail.Init
 import HMail.Config.Parser
 
-import DTypes
 import DTypes.Collect
 
 import Brick.Main
@@ -17,16 +15,10 @@ import Graphics.Vty (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 
 import Control.Lens
-import Control.Applicative
 import Control.Monad
 import Control.Monad.Writer
 import Control.Concurrent
-import Control.Concurrent.Chan
-import System.Environment
 import System.IO
-
-import Data.Semigroup
-import Data.Maybe
 
 
 hmailMain :: DInit Maybe -> IO ()
@@ -34,12 +26,12 @@ hmailMain cmdline = do
   init <- maybe onErr id <$> assembleConfig cmdline
   bchan <- newBChan 10
   chan <- newChan
-  forkIO $ imapThread init bchan chan
+  void $ forkIO $ imapThread init bchan chan
   initVty <- mkVty defaultConfig
   finalState <- customMain
     initVty (mkVty defaultConfig)
     (Just bchan) application (mkInitialState chan)
-  forM (finalState ^. errorLog) (hPutStrLn stderr)
+  void $ forM (finalState ^. errorLog) (hPutStrLn stderr)
   pure ()
   where
     onErr = error "could not find config data"
