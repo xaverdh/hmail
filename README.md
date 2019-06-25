@@ -14,7 +14,10 @@ cabal install --ghc-option=-threaded
 
 There is a [build script][hmail-build-script] automating this.
 
+# Building with nix
 
+Run `nix-build` in the top level directory of this repository.
+To build a specific commit / ref: `nix-build --argstr ref <commit-hash>`
 
 
 [hmail-build-script]: https://gitlab.com/xaverdh/hmail/blob/master/build
