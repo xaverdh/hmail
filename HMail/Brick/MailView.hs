@@ -3,6 +3,7 @@ HMail.Brick.MailView where
 
 import HMail.Types
 import HMail.View
+import HMail.State
 import HMail.ImapMail
 import HMail.Header
 import HMail.Brick.Util
@@ -67,8 +68,7 @@ handleKeyEvent uid key mods = case key of
     mbox <- use (activeView . to fromMailView . mailViewBoxName)
     uid <- use (activeView . to fromMailView . mailViewUid)
     sendCommand $ FetchContent mbox [uid]
-  key -> liftIO . IO.hPutStrLn IO.stderr
-    $ "unbound key pressed: " <> show key
+  key -> logDebug $ "unbound key pressed: " <> show key
   where
     haveMod = mods /= []
     vp = viewportScroll ResMainViewport
