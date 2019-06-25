@@ -26,7 +26,7 @@ type HeaderPart = B.ByteString
 newtype Header = Header {
     _headerMap :: M.Map HeaderPart T.Text
   }
-  deriving (Eq,Show,NFData)
+  deriving (Eq,Ord,Show,NFData)
 
 makeLenses ''Header
 

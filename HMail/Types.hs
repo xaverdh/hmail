@@ -65,22 +65,36 @@ data Command =
   | ListMailBoxes
 
 
-data View n = 
+data View n =
+  IsMailBoxesView (MailBoxesView n)
+  | IsMailBoxView (MailBoxView n)
+  | IsMailView MailView
+  deriving (Show)
+
+data MailBoxesView n =
   MailBoxesView {
-      _boxesViewList :: List n MailboxName
-    }
-  | MailBoxView { 
-      _boxViewName :: MailboxName
-     ,_boxViewList :: List n (MailMeta,Header)
-    }
-  | MailView {
-     _mailViewBoxName :: MailboxName
-     ,_mailViewUid :: UID
-     ,_mailViewShowFullHeader :: Bool
-    }
+    _boxesViewList :: List n MailboxName
+  }
+  deriving (Show)
+
+data MailBoxView n =
+  MailBoxView {
+    _boxViewName :: MailboxName
+  , _boxViewList :: List n (MailMeta,Header)
+  }
+  deriving (Show)
+
+data MailView =
+  MailView {
+    _mailViewBoxName :: MailboxName
+  , _mailViewUid :: UID
+  , _mailViewShowFullHeader :: Bool
+  }
+  deriving (Eq,Ord,Show)
 
 
-data MailBox = MailBox {
+data MailBox =
+  MailBox {
     _mails :: M.Map UID ImapMail
    ,_attrs :: [Attribute]
   } deriving (Eq,Show)
@@ -89,7 +103,7 @@ data MailBox = MailBox {
 data MailContent =
   ContentIs T.Text
   | ContentUnknown
-  deriving (Eq,Show,Generic,NFData)
+  deriving (Eq,Ord,Show,Generic,NFData)
 
 data MailMeta = 
   MailMeta {
@@ -102,7 +116,7 @@ data MailMeta =
 data Mail = Mail {
    _mailContent :: MailContent
   ,_mailHeader :: Header
-  } deriving (Eq,Show,NFData,Generic)
+  } deriving (Eq,Ord,Show,NFData,Generic)
 
 data ImapMail =
   ImapMail {
@@ -127,7 +141,9 @@ makeLenses ''MailMeta
 makeLenses ''ImapMail
 makeLenses ''Mail
 makeLenses ''HMailState
-makeLenses ''View
+makeLenses ''MailBoxesView
+makeLenses ''MailBoxView
+makeLenses ''MailView
 
 makeDType ''Init
 myMakeLenses ''DInit

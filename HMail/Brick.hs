@@ -86,12 +86,9 @@ handleGlobalEvent = \case
 
 handleActiveView :: BrickEv ImapEvent -> EvH ()
 handleActiveView e = use activeView >>= \case
-  MailBoxView mbox lst -> 
-    MailBoxView.handleEvent mbox lst e
-  MailBoxesView lst ->
-    BoxesView.handleEvent lst e
-  MailView _ uid _ ->
-    MailView.handleEvent uid e
+  IsMailBoxView v -> MailBoxView.handleEvent v e
+  IsMailBoxesView v -> BoxesView.handleEvent v e
+  IsMailView v -> MailView.handleEvent v e
 
 
 handleImapEvent :: ImapEvent -> EvF
@@ -125,7 +122,7 @@ draw st = pure $ w -- <=> renderEditor True promptEd
   where
     -- promptEd = editorText ResPrompt (txt . F.fold) (Just 1) "<enter cmd>"
     w = case st ^. activeView of
-      MailBoxesView lst -> BoxesView.draw lst st
-      MailBoxView mbox lst -> MailBoxView.draw mbox lst st
-      MailView mbox uid fhdr -> MailView.draw mbox uid fhdr st
+      IsMailBoxesView v -> BoxesView.draw v st
+      IsMailBoxView v -> MailBoxView.draw v st
+      IsMailView v -> MailView.draw v st
 

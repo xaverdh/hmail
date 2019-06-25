@@ -1,9 +1,10 @@
-{-# language FlexibleContexts #-}
+{-# language LambdaCase, FlexibleContexts #-}
 module HMail.State where
 
 import HMail.Mail
 import HMail.ImapMail as ImapMail
 import HMail.Types
+import HMail.View
 import HMail.Header
 -- import HMail.Brick.EventH
 
@@ -62,20 +63,26 @@ logDebug s = errorLog %= (s:)
 updateBoxesView :: MonadState HMailState m => m ()
 updateBoxesView = do
   lst <- newList . vec <$> get
-  activeView . boxesViewList .= lst
+  use activeView >>= \case
+    IsMailBoxesView v ->
+      activeView .= IsMailBoxesView (set boxesViewList lst v)
+    _ -> pure ()
   where
     newList v = list ResBoxesList v 1
     vec st = V.fromList . M.keys $ st ^. mailBoxes
 
 updateMailBoxView :: MonadState HMailState m => m ()
 updateMailBoxView = do
-  lst <- newList . vec <$> get
-  activeView . boxViewList .= lst
+  name <- use (activeView . to fromMailBoxView . boxViewName)
+  lst <- newList . vec name <$> get
+  use activeView >>= \case
+    IsMailBoxView v ->
+      activeView .= IsMailBoxView (set boxViewList lst v)
+    _ -> pure ()
   where
-    name = view (activeView . boxViewName)
-    newList v = list ResMailBoxList v 1
-    vec st = V.fromList . map extractElem . M.elems
-      $ st ^. mailBoxes . ix (name st) . mails
+    newList xs = list ResMailBoxList xs 1
+    vec name st = V.fromList . map extractElem . M.elems
+      $ st ^. mailBoxes . ix name . mails
     extractElem mail = (mail ^. immMeta,mail ^. immHeader)
 
 

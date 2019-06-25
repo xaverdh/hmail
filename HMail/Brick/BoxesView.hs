@@ -27,12 +27,15 @@ import Control.Monad.Base
 import Control.Monad.Extra
 import Data.Semigroup
 
-handleEvent :: List ResName MailboxName
+handleEvent :: MailBoxesView ResName
   -> BrickEvent ResName e -> EvH ()
-handleEvent lst = \case
+handleEvent (MailBoxesView lst) = \case
   VtyEvent ev -> do
     lst' <- liftBase $ handleListEvent ev lst
-    activeView . boxesViewList .= lst'
+    use activeView >>= \case
+      IsMailBoxesView v ->
+        activeView .= IsMailBoxesView (set boxesViewList lst' v)
+      _ -> pure ()
     case ev of
       EvKey key mods -> handleKeyEvent lst' key mods
       _ -> pure ()
@@ -46,9 +49,9 @@ handleKeyEvent lst key mods = case key of
   _ -> pure ()
 
 
-draw :: List ResName MailboxName
+draw :: MailBoxesView ResName
   -> HMailState -> Widget ResName
-draw lst st = 
+draw (MailBoxesView lst) st =
   banner genericHelp
   <=> renderList renderMBox True lst
   where

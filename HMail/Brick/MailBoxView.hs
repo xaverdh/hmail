@@ -2,6 +2,7 @@
 module HMail.Brick.MailBoxView where
 
 import HMail.Types
+import HMail.View
 import HMail.Header
 import HMail.Brick.EventH
 import HMail.Brick.Util
@@ -33,24 +34,25 @@ import Data.Bool
 import qualified Data.Text as T
 import qualified Data.Foldable as F
 
-handleEvent :: MailboxName
-  -> List ResName (MailMeta,Header)
+handleEvent :: MailBoxView ResName
   -> BrickEvent ResName e
   -> EvH ()
-handleEvent mbox lst = \case
+handleEvent (MailBoxView mbox lst) = \case
   VtyEvent ev -> do
     lst' <- liftBase $ handleListEvent ev lst
-    activeView . boxViewList .= lst'
+    use activeView >>= \case
+      IsMailBoxView v ->
+        activeView .= IsMailBoxView (set boxViewList lst' v)
+      _ -> pure ()
     case ev of
       EvKey key mods -> handleKeyEvent lst' key mods
       _ -> pure ()
   _ -> pure ()
 
 
-draw :: MailboxName
-  -> List ResName (MailMeta,Header)
+draw :: MailBoxView ResName
   -> HMailState -> Widget ResName
-draw mbox lst st = 
+draw (MailBoxView mbox lst) st =
   -- padTop (Pad 2)
   banner genericHelp
   <=> renderList renderEntry True lst
@@ -106,12 +108,13 @@ fmt n
     base = 10^3
     suffixes = ["K","M","G","T"]
 
+
 handleKeyEvent :: List ResName (MailMeta,Header)
   -> Key -> [Modifier] -> EvH ()
 handleKeyEvent lst key mods = case key of
   KChar 'y' -> enterBoxesView
   KEnter -> whenJust ( getSelected lst ) $ \(meta,_) -> do
-    Just mbox <- preuse $ activeView . boxViewName
+    mbox <- use (activeView . to fromMailBoxView . boxViewName)
     boxes <- use $ mailBoxes
     flip whenJust (enterMailView mbox) $ do
       box <- boxes ^. at mbox
@@ -119,7 +122,7 @@ handleKeyEvent lst key mods = case key of
       box ^. mails . at uid -- check that mail exists
       pure uid
   KChar 'r' -> do
-    Just mbox <- preuse (activeView . boxViewName)
+    mbox <- use (activeView . to fromMailBoxView . boxViewName)
     sendCommand $ FetchMetasAndHeaders mbox
   _ -> pure ()
 

@@ -3,6 +3,7 @@ HMail.Brick.MailView where
 
 import HMail.State
 import HMail.Types
+import HMail.View
 import HMail.Mail
 import HMail.ImapMail
 import HMail.Header
@@ -32,10 +33,10 @@ import qualified Data.Text as T
 
 import qualified System.IO as IO
 
-handleEvent :: UID
+handleEvent :: MailView
   -> BrickEvent ResName e
   -> EvH ()
-handleEvent uid = \case
+handleEvent (MailView _ uid _) = \case
   VtyEvent ev -> case ev of
     EvKey key mods -> handleKeyEvent uid key mods
     _ -> pure ()
@@ -61,13 +62,16 @@ handleKeyEvent uid key mods = case key of
   KPageDown -> liftBase $ vScrollToEnd vp
   KChar ' ' -> liftBase $ vScrollPage vp Down
   KChar 'y' -> do
-    mbox <- use $ activeView . mailViewBoxName
+    mbox <- use $ activeView . to fromMailView . mailViewBoxName
     enterMailBoxView mbox
   KChar 'f' -> do
-    activeView . mailViewShowFullHeader %= not
+    use activeView >>= \case
+      IsMailView v ->
+        activeView .= IsMailView ( (mailViewShowFullHeader %~ not) v )
+      _ -> pure ()
   KChar 'r' -> do
-    Just mbox <- preuse (activeView . mailViewBoxName)
-    Just uid <- preuse (activeView . mailViewUid)
+    mbox <- use (activeView . to fromMailView . mailViewBoxName)
+    uid <- use (activeView . to fromMailView . mailViewUid)
     sendCommand $ FetchContent mbox [uid]
   key -> liftIO . IO.hPutStrLn IO.stderr
     $ "unbound key pressed: " <> show key
@@ -76,8 +80,8 @@ handleKeyEvent uid key mods = case key of
     vp = viewportScroll ResMainViewport
 
 
-draw :: MailboxName -> UID -> Bool -> HMailState -> Widget ResName
-draw mbox uid fullHdr st = 
+draw :: MailView -> HMailState -> Widget ResName
+draw (MailView mbox uid fullHdr) st =
   (banner mailViewHelp <=>)
   . fromMaybe errorWidget $ do
     box <- st ^. mailBoxes . at mbox
