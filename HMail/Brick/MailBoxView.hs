@@ -44,8 +44,7 @@ handleEvent = \case
   _ -> pure ()
 
 
-draw :: MailBoxView ResName
-  -> HMailState -> Widget ResName
+draw :: MailBoxView -> HMailState -> Widget ResName
 draw (MailBoxView mbox lst) st =
   -- padTop (Pad 2)
   banner genericHelp

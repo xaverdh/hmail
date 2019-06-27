@@ -46,8 +46,7 @@ handleKeyEvent lst key _ = case key of
   _ -> pure ()
 
 
-draw :: MailBoxesView ResName
-  -> HMailState -> Widget ResName
+draw :: MailBoxesView -> HMailState -> Widget ResName
 draw (MailBoxesView lst) _ =
   banner genericHelp
   <=> renderList renderMBox True lst

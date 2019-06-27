@@ -56,7 +56,7 @@ data HMailState =
    _mailBoxes :: M.Map MailboxName MailBox
    ,_errorLog :: [String]
    ,_cmdChannel :: Chan Command
-   ,_activeView :: View ResName
+   ,_activeView :: View
    ,_verbosity :: Verbosity
   }
 
@@ -66,22 +66,22 @@ data Command =
   | ListMailBoxes
 
 
-data View n =
-  IsMailBoxesView (MailBoxesView n)
-  | IsMailBoxView (MailBoxView n)
+data View =
+  IsMailBoxesView MailBoxesView
+  | IsMailBoxView MailBoxView
   | IsMailView MailView
   deriving (Show)
 
-data MailBoxesView n =
+data MailBoxesView =
   MailBoxesView {
-    _boxesViewList :: List n MailboxName
+    _boxesViewList :: List ResName MailboxName
   }
   deriving (Show)
 
-data MailBoxView n =
+data MailBoxView =
   MailBoxView {
     _boxViewName :: MailboxName
-  , _boxViewList :: List n (MailMeta,Header)
+  , _boxViewList :: List ResName (MailMeta,Header)
   }
   deriving (Show)
 
