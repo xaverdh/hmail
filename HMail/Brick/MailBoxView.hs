@@ -4,7 +4,7 @@ module HMail.Brick.MailBoxView where
 import HMail.Types
 import HMail.View
 import HMail.Header
-import HMail.Brick.EventH
+-- import HMail.Brick.EventH
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
@@ -14,13 +14,9 @@ import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
 import Brick.Types
-import Brick.Main
 import Brick.Widgets.Core
 import Brick.Widgets.List
 
-import HMail.State
-import HMail.Types
-import HMail.Mail
 import HMail.Util
 
 import Control.Lens
@@ -28,7 +24,6 @@ import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.Base
 
-import Data.Semigroup
 import Data.Maybe
 import Data.Bool
 import qualified Data.Text as T

@@ -5,7 +5,7 @@ module HMail.Config.Parser where
 import HMail.Types
 import HMail.Init
 
-import DTypes.Instances.AlternativeInducesMonoid
+import DTypes.Instances.AlternativeInducesMonoid ()
 
 import Control.Applicative
 import Control.Monad

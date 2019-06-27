@@ -26,18 +26,11 @@ import Graphics.Vty.Input.Events
 import Graphics.Vty.Attributes
 
 import Network.HaskellNet.IMAP.Types
-import Network.HaskellNet.IMAP
 
 import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Concurrent
-import Data.Semigroup
-import Data.Maybe
 import Data.Bifunctor
-import qualified Data.Foldable as F
-import qualified Data.Text as T
-import qualified Data.Map.Lazy as M
 
 
 application :: App HMailState ImapEvent ResName

@@ -24,10 +24,6 @@ main :: IO ()
 main = parseCmdline
 
 
--- TODO
-otherMain :: () -> IO ()
-otherMain _ = pure ()
-
 parseCmdline :: IO ()
 parseCmdline = join $ customExecParser hmailPrefs parser
   where
