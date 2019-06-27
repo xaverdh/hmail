@@ -1,52 +1,80 @@
-{-# language GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
-module HMail.Brick.EventH where
+{-# language GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances #-}
+module HMail.Brick.EventH (
+  EventH(..)
+, EventF
+, EvH(..)
+, EvF(..)
+, finaliseEventF
+, withEventH
+, transformEventH
+, injectEventH
+, continueEventF
+, resizeOrQuitEventF
+, haltEventF
+, suspendAndResumeEventH
+) where
 
 import Brick.Main
 import Brick.Types
+import HMail.Types
 
 import Control.Monad.Trans (lift)
 import Control.Monad.Base
-import Control.Monad.State
+import Control.Monad.RWS
 
-newtype EventH s n a = EventH {
-    extractEventH :: StateT s (EventM n) a
+import Data.Bifunctor
+import Data.Maybe
+import Data.Monoid (Last(..))
+
+newtype EventH v a = EventH {
+    extractEventH :: RWST v (Last View) HMailState (EventM ResName) a
   }
   deriving
-    (Functor
-    ,Applicative
-    ,Monad
-    ,MonadIO
-    ,MonadState s )
+    ( Functor
+    , Applicative
+    , Monad
+    , MonadIO
+    , MonadState HMailState
+    , MonadReader v
+    , MonadWriter (Last View) )
 
-instance MonadBase (EventM n) (EventH s n) where
+type EventF v = EventH v (Next (Maybe (HMailState,View)))
+type EvH v = EventH v
+type EvF v = EventF v
+
+instance MonadBase (EventM ResName) (EventH v) where
   liftBase m = EventH $ lift m
 
-runEventH :: EventH s n a -> s -> EventM n (a,s)
-runEventH = runStateT . extractEventH
 
-execEventH :: EventH s n a -> s -> EventM n s
-execEventH = execStateT . extractEventH
-
-evalEventH :: EventH s n a -> s -> EventM n a
-evalEventH = evalStateT . extractEventH
-
-type EventF s n = EventH s n (Next s)
-
-finaliseEventH :: EventF s n -> s -> EventM n (Next s)
-finaliseEventH = evalEventH
+finaliseEventF :: EventF View -> View -> HMailState
+  -> EventM ResName (Next (HMailState,View))
+finaliseEventF f v s = do
+  (next,s,lv) <- runRWST (extractEventH f) v s
+  pure $ fromMaybe (s,defaultView lv) <$> next
+  where defaultView lv = fromMaybe v $ getLast lv 
 
 
-continueEventH :: EventF s n
-continueEventH = get >>= liftBase . continue
+withEventH :: (u -> HMailState -> (v, HMailState))
+  -> EventH v a
+  -> EventH u a
+withEventH g = EventH . withRWST g . extractEventH
 
-haltEventH :: EventF s n
-haltEventH = get >>= liftBase . halt
+transformEventH :: (u -> v) -> EventH v a -> EventH u a
+transformEventH f = withEventH $ curry (first f)
 
-resizeOrQuitEventH :: BrickEvent n e -> EventF s n
-resizeOrQuitEventH ev =
-  get >>= liftBase . flip resizeOrQuit ev
+injectEventH :: v -> EventH v a -> EventH u a
+injectEventH = transformEventH . const
 
-suspendAndResumeEventH :: IO s -> EventF s n
-suspendAndResumeEventH io =
+continueEventF :: EventF v
+continueEventF = liftBase $ continue Nothing
+
+resizeOrQuitEventF :: BrickEvent ResName e -> EventF v
+resizeOrQuitEventF ev = liftBase $ resizeOrQuit Nothing ev
+
+haltEventF :: EventF v
+haltEventF = liftBase $ halt Nothing
+
+suspendAndResumeEventH :: IO (Maybe (HMailState,View)) -> EventF v
+suspendAndResumeEventH io = do
   liftBase $ suspendAndResume io
 

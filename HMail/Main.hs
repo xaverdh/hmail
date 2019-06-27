@@ -1,7 +1,7 @@
 module HMail.Main where
 
 import HMail.Brick (application)
-import HMail.Brick.Init (mkInitialState)
+import HMail.Brick.Init (mkInitialState,initView)
 import HMail.Imap (imapThread)
 import HMail.Types
 import HMail.Init
@@ -28,9 +28,10 @@ hmailMain verbosity cmdline = do
   chan <- newChan
   void $ forkIO $ imapThread init bchan chan
   initVty <- mkVty defaultConfig
-  finalState <- customMain
+  (finalState,finalView) <- customMain
     initVty (mkVty defaultConfig)
-    (Just bchan) application (mkInitialState chan verbosity)
+    (Just bchan) application
+    (mkInitialState chan verbosity,initView)
   void $ forM (finalState ^. errorLog) (hPutStrLn stderr)
   pure ()
   where

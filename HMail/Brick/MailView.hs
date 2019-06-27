@@ -1,7 +1,11 @@
-{-# language LambdaCase, OverloadedStrings #-} module
-HMail.Brick.MailView where
+{-# language LambdaCase, OverloadedStrings #-}
+module HMail.Brick.MailView (
+  handleEvent
+  , draw
+) where
 
 import HMail.Types
+import HMail.Brick.EventH
 import HMail.View
 import HMail.State
 import HMail.ImapMail
@@ -21,6 +25,7 @@ import Graphics.Vty.Input.Events
 
 import Control.Lens
 import Control.Monad.Base
+import Control.Monad.RWS
 import Control.Monad.IO.Class
 import Data.Maybe
 import qualified Data.Map.Lazy as M
@@ -28,7 +33,7 @@ import qualified Data.Text as T
 
 import qualified System.IO as IO
 
-handleEvent :: BrickEvent ResName e -> EvH ()
+handleEvent :: BrickEvent ResName e -> EvH MailView ()
 handleEvent = \case
   VtyEvent ev -> case ev of
     EvKey key mods -> handleKeyEvent key mods
@@ -37,7 +42,7 @@ handleEvent = \case
 
 
 
-handleKeyEvent :: Key -> [Modifier] -> EvH ()
+handleKeyEvent :: Key -> [Modifier] -> EvH MailView ()
 handleKeyEvent key mods = case key of
   KUp -> liftBase $ if haveMod
     then vScrollPage vp Up
@@ -55,16 +60,14 @@ handleKeyEvent key mods = case key of
   KPageDown -> liftBase $ vScrollToEnd vp
   KChar ' ' -> liftBase $ vScrollPage vp Down
   KChar 'y' -> do
-    mbox <- use $ activeView . to fromMailView . mailViewBoxName
+    mbox <- view mailViewBoxName
     enterMailBoxView mbox
   KChar 'f' -> do
-    use activeView >>= \case
-      IsMailView v ->
-        activeView .= IsMailView ( (mailViewShowFullHeader %~ not) v )
-      _ -> pure ()
+    v <- ask
+    tellView . IsMailView $ (mailViewShowFullHeader %~ not) v
   KChar 'r' -> do
-    mbox <- use (activeView . to fromMailView . mailViewBoxName)
-    uid <- use (activeView . to fromMailView . mailViewUid)
+    mbox <- view mailViewBoxName
+    uid <- view mailViewUid
     sendCommand $ FetchContent mbox [uid]
   key -> logDebug $ "unbound key pressed: " <> show key
   where

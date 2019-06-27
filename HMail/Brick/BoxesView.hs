@@ -1,10 +1,12 @@
 {-# language LambdaCase, OverloadedStrings #-}
 module HMail.Brick.BoxesView (
   handleEvent
- ,draw
+, draw
+, updateBoxesView
 ) where
 
 import HMail.Types
+import HMail.Brick.EventH
 import HMail.View
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
@@ -16,30 +18,34 @@ import Brick.Widgets.List
 import Brick.Widgets.Center
 import Brick.Widgets.Border
 
+import qualified Data.Map.Lazy as M
+import qualified Data.Vector as V
+
 import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
 import Control.Lens
 import Control.Monad.Base
 import Control.Monad.Extra
+import Control.Monad.RWS
 
+import qualified Data.Vector as V
+import qualified Data.Map.Lazy as M
 
-handleEvent :: BrickEvent ResName e -> EvH ()
+handleEvent :: BrickEvent ResName e -> EvH MailBoxesView ()
 handleEvent = \case
   VtyEvent ev -> do
-    MailBoxesView lst <- use $ activeView . to fromMailBoxesView
+    lst <- view boxesViewList
     lst' <- liftBase $ handleListEvent ev lst
-    use activeView >>= \case
-      IsMailBoxesView v ->
-        activeView .= IsMailBoxesView (set boxesViewList lst' v)
-      _ -> pure ()
+    v <- ask
+    tellView $ IsMailBoxesView (set boxesViewList lst' v)
     case ev of
       EvKey key mods -> handleKeyEvent lst' key mods
       _ -> pure ()
   _ -> pure ()
 
 handleKeyEvent :: List ResName MailboxName
-  -> Key -> [Modifier] -> EvH ()
+  -> Key -> [Modifier] -> EvH MailBoxesView ()
 handleKeyEvent lst key _ = case key of
   KEnter -> whenJust (getSelected lst) enterMailBoxView
   KChar 'r' -> sendCommand ListMailBoxes
@@ -64,3 +70,14 @@ draw (MailBoxesView lst) _ =
     
     align :: String -> String
     align s = s <> replicate (maxLen - length s) ' '
+
+updateBoxesView :: EvH MailBoxesView ()
+updateBoxesView = do
+  lst <- newList . vec <$> get
+  v <- ask
+  tellView $ IsMailBoxesView (set boxesViewList lst v)
+  where
+    newList v = list ResBoxesList v 1
+    vec st = V.fromList . M.keys $ st ^. mailBoxes
+
+

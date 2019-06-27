@@ -2,6 +2,7 @@
 module HMail.Brick.Util where
 
 import HMail.Types
+import HMail.Brick.EventH
 
 import Brick.Widgets.List
 
@@ -16,7 +17,7 @@ getSelected lst =
   ((lst ^. listElementsL) !?)
   =<< (lst ^. listSelectedL)
 
-sendCommand :: Command -> EvH ()
+sendCommand :: Command -> EvH v ()
 sendCommand cmd = do
   chan <- use cmdChannel
   liftIO $ writeChan chan cmd

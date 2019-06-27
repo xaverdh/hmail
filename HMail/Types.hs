@@ -3,12 +3,12 @@
 module HMail.Types where
 
 import HMail.Header
-import HMail.Brick.EventH
 import HMail.TH
 
 import Brick.Types
 import Brick.Widgets.List
 
+import Data.Monoid (Last)
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 -- import qualified Data.ByteString as B
@@ -56,7 +56,6 @@ data HMailState =
    _mailBoxes :: M.Map MailboxName MailBox
    ,_errorLog :: [String]
    ,_cmdChannel :: Chan Command
-   ,_activeView :: View
    ,_verbosity :: Verbosity
   }
 
@@ -133,8 +132,6 @@ data ResName =
   deriving (Eq,Ord,Show)
 
 type BrickEv = BrickEvent ResName
-type EvH = EventH HMailState ResName
-type EvF = EventF HMailState ResName
 
 makeLenses ''Init
 makeLenses ''MailBox

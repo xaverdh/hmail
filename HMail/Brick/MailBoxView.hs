@@ -1,15 +1,20 @@
 {-# language LambdaCase, OverloadedStrings, ScopedTypeVariables #-}
-module HMail.Brick.MailBoxView where
+module HMail.Brick.MailBoxView (
+  handleEvent
+, draw
+, updateMailBoxView
+) where
 
 import HMail.Types
 import HMail.View
+import HMail.ImapMail
 import HMail.Header
--- import HMail.Brick.EventH
+import HMail.Brick.EventH
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
 
-import Network.HaskellNet.IMAP
+-- import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
@@ -23,21 +28,23 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.Base
+import Control.Monad.RWS
 
 import Data.Maybe
 import Data.Bool
 import qualified Data.Text as T
 import qualified Data.Foldable as F
+import qualified Data.Vector as V
+import qualified Data.Map.Lazy as M
 
-handleEvent :: BrickEvent ResName e -> EvH ()
+
+handleEvent :: BrickEvent ResName e -> EvH MailBoxView ()
 handleEvent = \case
   VtyEvent ev -> do
-    MailBoxView _ lst <- use $ activeView . to fromMailBoxView
+    lst <- view boxViewList
     lst' <- liftBase $ handleListEvent ev lst
-    use activeView >>= \case
-      IsMailBoxView v ->
-        activeView .= IsMailBoxView (set boxViewList lst' v)
-      _ -> pure ()
+    v <- ask
+    tellView $ IsMailBoxView (set boxViewList lst' v)
     case ev of
       EvKey key mods -> handleKeyEvent lst' key mods
       _ -> pure ()
@@ -103,19 +110,31 @@ fmt n
 
 
 handleKeyEvent :: List ResName (MailMeta,Header)
-  -> Key -> [Modifier] -> EvH ()
+  -> Key -> [Modifier] -> EvH MailBoxView ()
 handleKeyEvent lst key mods = case key of
   KChar 'y' -> enterBoxesView
   KEnter -> whenJust ( getSelected lst ) $ \(meta,_) -> do
-    mbox <- use (activeView . to fromMailBoxView . boxViewName)
-    boxes <- use $ mailBoxes
+    mbox <- view boxViewName
+    boxes <- use mailBoxes
     flip whenJust (enterMailView mbox) $ do
       box <- boxes ^. at mbox
       uid <- meta ^? metaUid
       box ^. mails . at uid -- check that mail exists
       pure uid
   KChar 'r' -> do
-    mbox <- use (activeView . to fromMailBoxView . boxViewName)
+    mbox <- view boxViewName
     sendCommand $ FetchMetasAndHeaders mbox
   _ -> pure ()
+
+updateMailBoxView :: EvH MailBoxView ()
+updateMailBoxView = do
+  name <- view boxViewName
+  lst <- newList . vec name <$> get
+  v <- ask
+  tellView $ IsMailBoxView (set boxViewList lst v)
+  where
+    newList xs = list ResMailBoxList xs 1
+    vec name st = V.fromList . map extractElem . M.elems
+      $ st ^. mailBoxes . ix name . mails
+    extractElem mail = (mail ^. immMeta,mail ^. immHeader)
 

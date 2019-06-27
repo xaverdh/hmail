@@ -57,31 +57,4 @@ logErr err = errorLog %= (show err:)
 logDebug :: MonadState HMailState m => String -> m ()
 logDebug s = errorLog %= (s:)
 
-updateBoxesView :: MonadState HMailState m => m ()
-updateBoxesView = do
-  lst <- newList . vec <$> get
-  use activeView >>= \case
-    IsMailBoxesView v ->
-      activeView .= IsMailBoxesView (set boxesViewList lst v)
-    _ -> pure ()
-  where
-    newList v = list ResBoxesList v 1
-    vec st = V.fromList . M.keys $ st ^. mailBoxes
-
-updateMailBoxView :: MonadState HMailState m => m ()
-updateMailBoxView = do
-  name <- use (activeView . to fromMailBoxView . boxViewName)
-  lst <- newList . vec name <$> get
-  use activeView >>= \case
-    IsMailBoxView v ->
-      activeView .= IsMailBoxView (set boxViewList lst v)
-    _ -> pure ()
-  where
-    newList xs = list ResMailBoxList xs 1
-    vec name st = V.fromList . map extractElem . M.elems
-      $ st ^. mailBoxes . ix name . mails
-    extractElem mail = (mail ^. immMeta,mail ^. immHeader)
-
-
-
 

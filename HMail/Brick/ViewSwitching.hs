@@ -2,6 +2,8 @@
 module HMail.Brick.ViewSwitching where
 
 import HMail.Types
+import HMail.Brick.EventH
+import HMail.View
 import HMail.Header
 import HMail.ImapMail
 import HMail.Brick.Util
@@ -16,10 +18,10 @@ import Control.Monad.Extra
 import qualified Data.Vector as V
 import qualified Data.Map.Lazy as M
 
-enterMailBoxView :: MailboxName -> EvH ()
+enterMailBoxView :: MailboxName -> EvH v ()
 enterMailBoxView name =
   whenJustM (use $ mailBoxes . at name) $ \box -> do
-    activeView .= IsMailBoxView ( MailBoxView name (newList box) )
+    tellView $ IsMailBoxView ( MailBoxView name (newList box) )
     -- order matters here
     sendCommand $ FetchMetasAndHeaders name
   where
@@ -31,10 +33,10 @@ enterMailBoxView name =
       <$> box ^. mails . to (V.fromList . M.elems)
     extractElem mail = (mail ^. immMeta,mail ^. immHeader)
 
-enterBoxesView :: EvH ()
+enterBoxesView :: EvH v ()
 enterBoxesView = do
   vec <- use $ mailBoxes . to (V.fromList . M.keys)
-  activeView .= IsMailBoxesView ( MailBoxesView (newList vec) )
+  tellView $ IsMailBoxesView ( MailBoxesView (newList vec) )
   -- order matters here
   sendCommand $ ListMailBoxes
   where
@@ -42,9 +44,9 @@ enterBoxesView = do
     newList vec = list ResBoxesList vec 3
 
 
-enterMailView :: MailboxName -> UID -> EvH ()
+enterMailView :: MailboxName -> UID -> EvH v ()
 enterMailView mbox uid = do
-  activeView .= IsMailView ( MailView mbox uid False )
+  tellView $ IsMailView ( MailView mbox uid False )
   -- order matters here
   sendCommand $ FetchContent mbox [uid]
 
