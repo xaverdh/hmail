@@ -1,6 +1,7 @@
 { pkgs ? import <nixpkgs> {}
 , haskellPackages ? pkgs.haskellPackages
 , ref ? "master"
+, fromCwd ? false
 }:
 let
   callCabal2nix = haskellPackages.callCabal2nix;
@@ -23,10 +24,11 @@ let
     rev = "patchwork";
     sha256 = "0d03kbagmva5pwi7b9lzv5vbv72nvj9vvbad4yiszr6q153n45y0";
   }) {};
-  hmail = callCabal2nix "hmail" (builtins.fetchGit {
-    url = ./.;
-    inherit ref;
-    }) {
+  hmail = callCabal2nix "hmail"
+    (if fromCwd then ./. else builtins.fetchGit {
+      url = ./.;
+      inherit ref;
+      }) {
     inherit dtypes dtypes-extra;
   };
 in pkgs.haskell.lib.appendConfigureFlags
