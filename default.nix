@@ -2,6 +2,7 @@
 , haskellPackages ? pkgs.haskellPackages
 , ref ? "master"
 , fromCwd ? false
+, wall ? false
 }:
 let
   callCabal2nix = haskellPackages.callCabal2nix;
@@ -33,6 +34,7 @@ let
   };
 in pkgs.haskell.lib.appendConfigureFlags
   ( hmail.override { inherit HaskellNet; } )
-  [ "--ghc-option=-threaded"
-    "--ghc-option=-O2"
-    "--ghc-option=-Wincomplete-patterns" ]
+  ( [ "--ghc-option=-threaded"
+      "--ghc-option=-O2"
+      "--ghc-option=-Wincomplete-patterns" ]
+  ++ pkgs.lib.optional wall "--ghc-option=-Wall" )
