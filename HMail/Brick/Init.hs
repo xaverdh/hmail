@@ -7,9 +7,9 @@ import Control.Concurrent.Chan
 import Brick.Widgets.List
 
 
-mkInitialState :: Chan Command -> HMailState
-mkInitialState chan =
-  HMailState mempty [] chan (IsMailBoxesView mboxesView)
+mkInitialState :: Chan Command -> Verbosity -> HMailState
+mkInitialState chan verbosity =
+  HMailState mempty [] chan (IsMailBoxesView mboxesView) verbosity
   where
     mboxesView = MailBoxesView
       (list ResBoxesList mempty 1)

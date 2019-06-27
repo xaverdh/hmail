@@ -21,8 +21,8 @@ import Control.Concurrent
 import System.IO
 
 
-hmailMain :: DInit Maybe -> IO ()
-hmailMain cmdline = do
+hmailMain :: Verbosity -> DInit Maybe -> IO ()
+hmailMain verbosity cmdline = do
   init <- maybe onErr id <$> assembleConfig cmdline
   bchan <- newBChan 10
   chan <- newChan
@@ -30,7 +30,7 @@ hmailMain cmdline = do
   initVty <- mkVty defaultConfig
   finalState <- customMain
     initVty (mkVty defaultConfig)
-    (Just bchan) application (mkInitialState chan)
+    (Just bchan) application (mkInitialState chan verbosity)
   void $ forM (finalState ^. errorLog) (hPutStrLn stderr)
   pure ()
   where

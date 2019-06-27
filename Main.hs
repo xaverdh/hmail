@@ -43,13 +43,9 @@ parseCmdline = join $ customExecParser hmailPrefs parser
         <> failureCode 1)
 
 hmailOptions :: OA.Parser (IO ())
-hmailOptions = do
-  liftA otherMain otherOptions
-  <|> fmap hmailMain ( hmailImapOptions <> hmailSmtpOptions )
-
--- TODO
-otherOptions = empty
-
+hmailOptions = pure hmailMain
+  <*> ( (fmap Verbosity . switch) (long "verbose" <> help "write debug output") )
+  <*> ( hmailImapOptions <> hmailSmtpOptions )
 
 hmailImapOptions :: OA.Parser (DInit Maybe)
 hmailImapOptions = F.fold

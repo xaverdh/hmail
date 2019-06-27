@@ -49,12 +49,15 @@ data Init =
    ,_smtpPassword :: Password
   }
 
+newtype Verbosity = Verbosity Bool
+
 data HMailState =
   HMailState {
    _mailBoxes :: M.Map MailboxName MailBox
    ,_errorLog :: [String]
    ,_cmdChannel :: Chan Command
    ,_activeView :: View ResName
+   ,_verbosity :: Verbosity
   }
 
 data Command =
