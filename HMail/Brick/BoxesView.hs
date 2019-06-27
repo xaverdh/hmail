@@ -5,6 +5,7 @@ module HMail.Brick.BoxesView (
 ) where
 
 import HMail.Types
+import HMail.View
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
@@ -23,10 +24,10 @@ import Control.Monad.Base
 import Control.Monad.Extra
 
 
-handleEvent :: MailBoxesView ResName
-  -> BrickEvent ResName e -> EvH ()
-handleEvent (MailBoxesView lst) = \case
+handleEvent :: BrickEvent ResName e -> EvH ()
+handleEvent = \case
   VtyEvent ev -> do
+    MailBoxesView lst <- use $ activeView . to fromMailBoxesView
     lst' <- liftBase $ handleListEvent ev lst
     use activeView >>= \case
       IsMailBoxesView v ->

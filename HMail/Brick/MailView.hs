@@ -28,19 +28,17 @@ import qualified Data.Text as T
 
 import qualified System.IO as IO
 
-handleEvent :: MailView
-  -> BrickEvent ResName e
-  -> EvH ()
-handleEvent (MailView _ uid _) = \case
+handleEvent :: BrickEvent ResName e -> EvH ()
+handleEvent = \case
   VtyEvent ev -> case ev of
-    EvKey key mods -> handleKeyEvent uid key mods
+    EvKey key mods -> handleKeyEvent key mods
     _ -> pure ()
   _ -> pure ()
 
 
 
-handleKeyEvent :: UID -> Key -> [Modifier] -> EvH ()
-handleKeyEvent uid key mods = case key of
+handleKeyEvent :: Key -> [Modifier] -> EvH ()
+handleKeyEvent key mods = case key of
   KUp -> liftBase $ if haveMod
     then vScrollPage vp Up
     else vScrollBy vp (-1)

@@ -86,9 +86,9 @@ handleGlobalEvent = \case
 
 handleActiveView :: BrickEv ImapEvent -> EvH ()
 handleActiveView e = use activeView >>= \case
-  IsMailBoxView v -> MailBoxView.handleEvent v e
-  IsMailBoxesView v -> BoxesView.handleEvent v e
-  IsMailView v -> MailView.handleEvent v e
+  IsMailBoxView _ -> MailBoxView.handleEvent e
+  IsMailBoxesView _ -> BoxesView.handleEvent e
+  IsMailView _ -> MailView.handleEvent e
 
 
 handleImapEvent :: ImapEvent -> EvF

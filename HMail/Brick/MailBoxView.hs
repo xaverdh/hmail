@@ -34,11 +34,10 @@ import Data.Bool
 import qualified Data.Text as T
 import qualified Data.Foldable as F
 
-handleEvent :: MailBoxView ResName
-  -> BrickEvent ResName e
-  -> EvH ()
-handleEvent (MailBoxView mbox lst) = \case
+handleEvent :: BrickEvent ResName e -> EvH ()
+handleEvent = \case
   VtyEvent ev -> do
+    MailBoxView _ lst <- use $ activeView . to fromMailBoxView
     lst' <- liftBase $ handleListEvent ev lst
     use activeView >>= \case
       IsMailBoxView v ->
