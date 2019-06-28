@@ -17,7 +17,7 @@ getSelected lst =
   ((lst ^. listElementsL) !?)
   =<< (lst ^. listSelectedL)
 
-sendCommand :: Command -> EvH v ()
+sendCommand :: Command -> EventH v ()
 sendCommand cmd = do
   chan <- use cmdChannel
   liftIO $ writeChan chan cmd

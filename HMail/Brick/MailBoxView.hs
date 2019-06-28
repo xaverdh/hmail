@@ -14,7 +14,6 @@ import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
 
--- import Network.HaskellNet.IMAP
 import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
@@ -38,7 +37,7 @@ import qualified Data.Vector as V
 import qualified Data.Map.Lazy as M
 
 
-handleEvent :: BrickEvent ResName e -> EvH MailBoxView ()
+handleEvent :: BrickEvent ResName e -> EventH MailBoxView ()
 handleEvent = \case
   VtyEvent ev -> do
     lst <- view boxViewList
@@ -104,13 +103,13 @@ fmt n
   | n < 0 = "bogus size"
   | True = let (n',s) = foldr f (n,"") suffixes in showT n' <> s
   where
-    f s (n,_) = if n < base then (n,s) else (div n base,s)
+    f s (k,_) = if k < base then (k,s) else (div k base,s)
     base = 10^3
     suffixes = ["K","M","G","T"]
 
 
 handleKeyEvent :: List ResName (MailMeta,Header)
-  -> Key -> [Modifier] -> EvH MailBoxView ()
+  -> Key -> [Modifier] -> EventH MailBoxView ()
 handleKeyEvent lst key mods = case key of
   KChar 'y' -> enterBoxesView
   KEnter -> whenJust ( getSelected lst ) $ \(meta,_) -> do
@@ -126,7 +125,7 @@ handleKeyEvent lst key mods = case key of
     sendCommand $ FetchMetasAndHeaders mbox
   _ -> pure ()
 
-updateMailBoxView :: EvH MailBoxView ()
+updateMailBoxView :: EventH MailBoxView ()
 updateMailBoxView = do
   name <- view boxViewName
   lst <- newList . vec name <$> get

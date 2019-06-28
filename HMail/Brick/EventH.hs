@@ -2,8 +2,6 @@
 module HMail.Brick.EventH (
   EventH(..)
 , EventF
-, EvH(..)
-, EvF(..)
 , finaliseEventF
 , withEventH
 , transformEventH
@@ -39,8 +37,6 @@ newtype EventH v a = EventH {
     , MonadWriter (Last View) )
 
 type EventF v = EventH v (Next (Maybe (HMailState,View)))
-type EvH v = EventH v
-type EvF v = EventF v
 
 instance MonadBase (EventM ResName) (EventH v) where
   liftBase m = EventH $ lift m
@@ -49,8 +45,8 @@ instance MonadBase (EventM ResName) (EventH v) where
 finaliseEventF :: EventF View -> View -> HMailState
   -> EventM ResName (Next (HMailState,View))
 finaliseEventF f v s = do
-  (next,s,lv) <- runRWST (extractEventH f) v s
-  pure $ fromMaybe (s,defaultView lv) <$> next
+  (next,s',lv) <- runRWST (extractEventH f) v s
+  pure $ fromMaybe (s',defaultView lv) <$> next
   where defaultView lv = fromMaybe v $ getLast lv 
 
 

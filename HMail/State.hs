@@ -3,16 +3,11 @@ module HMail.State where
 
 import HMail.ImapMail as ImapMail
 import HMail.Types
-import HMail.View
 import HMail.Header
--- import HMail.Brick.EventH
 
 import Network.HaskellNet.IMAP.Types
 
-import Brick.Widgets.List
-
 import qualified Data.Map.Lazy as M
-import qualified Data.Vector as V
 import Control.Lens
 import Control.Exception
 import Control.Monad.State.Class
@@ -28,9 +23,6 @@ storeMetaAndHeader mbox (meta,hdr) =
       ( (immMeta .~ meta)
       . (immHeader .~ hdr ) ) 
     mailLens uid = mailBoxes . ix mbox . mails . at uid
-
-
-
 
 storeMetasAndHeaders :: MonadState HMailState m
   => MailboxName -> [(MailMeta,Header)] -> m ()

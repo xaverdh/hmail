@@ -20,20 +20,17 @@ import Brick.Widgets.Core
 import Brick.Widgets.Center
 import Brick.Widgets.Border
 
-import Network.HaskellNet.IMAP.Types
 import Graphics.Vty.Input.Events
 
 import Control.Lens
 import Control.Monad.Base
 import Control.Monad.RWS
-import Control.Monad.IO.Class
 import Data.Maybe
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 
-import qualified System.IO as IO
 
-handleEvent :: BrickEvent ResName e -> EvH MailView ()
+handleEvent :: BrickEvent ResName e -> EventH MailView ()
 handleEvent = \case
   VtyEvent ev -> case ev of
     EvKey key mods -> handleKeyEvent key mods
@@ -42,7 +39,7 @@ handleEvent = \case
 
 
 
-handleKeyEvent :: Key -> [Modifier] -> EvH MailView ()
+handleKeyEvent :: Key -> [Modifier] -> EventH MailView ()
 handleKeyEvent key mods = case key of
   KUp -> liftBase $ if haveMod
     then vScrollPage vp Up

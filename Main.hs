@@ -19,7 +19,6 @@ instance Semigroup a => Semigroup (OA.Parser a) where
 instance Monoid a => Monoid (OA.Parser a) where
   mempty = pure mempty
 
-
 main :: IO ()
 main = parseCmdline
 

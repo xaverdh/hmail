@@ -8,7 +8,6 @@ import HMail.TH
 import Brick.Types
 import Brick.Widgets.List
 
-import Data.Monoid (Last)
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 -- import qualified Data.ByteString as B

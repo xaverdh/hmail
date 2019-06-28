@@ -18,7 +18,7 @@ import Control.Monad.Extra
 import qualified Data.Vector as V
 import qualified Data.Map.Lazy as M
 
-enterMailBoxView :: MailboxName -> EvH v ()
+enterMailBoxView :: MailboxName -> EventH v ()
 enterMailBoxView name =
   whenJustM (use $ mailBoxes . at name) $ \box -> do
     tellView $ IsMailBoxView ( MailBoxView name (newList box) )
@@ -33,7 +33,7 @@ enterMailBoxView name =
       <$> box ^. mails . to (V.fromList . M.elems)
     extractElem mail = (mail ^. immMeta,mail ^. immHeader)
 
-enterBoxesView :: EvH v ()
+enterBoxesView :: EventH v ()
 enterBoxesView = do
   vec <- use $ mailBoxes . to (V.fromList . M.keys)
   tellView $ IsMailBoxesView ( MailBoxesView (newList vec) )
@@ -44,7 +44,7 @@ enterBoxesView = do
     newList vec = list ResBoxesList vec 3
 
 
-enterMailView :: MailboxName -> UID -> EvH v ()
+enterMailView :: MailboxName -> UID -> EventH v ()
 enterMailView mbox uid = do
   tellView $ IsMailView ( MailView mbox uid False )
   -- order matters here

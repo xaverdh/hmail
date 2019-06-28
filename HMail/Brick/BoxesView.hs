@@ -29,10 +29,8 @@ import Control.Monad.Base
 import Control.Monad.Extra
 import Control.Monad.RWS
 
-import qualified Data.Vector as V
-import qualified Data.Map.Lazy as M
 
-handleEvent :: BrickEvent ResName e -> EvH MailBoxesView ()
+handleEvent :: BrickEvent ResName e -> EventH MailBoxesView ()
 handleEvent = \case
   VtyEvent ev -> do
     lst <- view boxesViewList
@@ -45,7 +43,7 @@ handleEvent = \case
   _ -> pure ()
 
 handleKeyEvent :: List ResName MailboxName
-  -> Key -> [Modifier] -> EvH MailBoxesView ()
+  -> Key -> [Modifier] -> EventH MailBoxesView ()
 handleKeyEvent lst key _ = case key of
   KEnter -> whenJust (getSelected lst) enterMailBoxView
   KChar 'r' -> sendCommand ListMailBoxes
@@ -71,7 +69,7 @@ draw (MailBoxesView lst) _ =
     align :: String -> String
     align s = s <> replicate (maxLen - length s) ' '
 
-updateBoxesView :: EvH MailBoxesView ()
+updateBoxesView :: EventH MailBoxesView ()
 updateBoxesView = do
   lst <- newList . vec <$> get
   v <- ask
