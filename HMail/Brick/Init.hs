@@ -5,15 +5,10 @@ module HMail.Brick.Init (
 
 import HMail.Types
 import Control.Concurrent.Chan
-import Brick.Widgets.List
-
 
 mkInitialState :: Chan Command -> Verbosity -> HMailState
 mkInitialState chan verbosity =
   HMailState mempty [] chan verbosity
 
 initView :: View
-initView = IsMailBoxesView mboxesView
-  where
-    mboxesView = MailBoxesView
-      (list ResBoxesList mempty 1)
+initView = IsMailBoxesView (MailBoxesView Nothing)

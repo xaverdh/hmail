@@ -7,6 +7,7 @@ module HMail.Brick.BoxesView (
 
 import HMail.Types
 import HMail.Brick.EventH
+import HMail.Brick.Widgets
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
@@ -32,47 +33,54 @@ import Control.Monad.RWS
 handleEvent :: BrickEv e -> EventH MailBoxesView ()
 handleEvent = \case
   VtyEvent ev -> do
-    lst <- view boxesViewList
-    lst' <- liftBase $ handleListEvent ev lst
-    v <- ask
-    tellView $ IsMailBoxesView (set boxesViewList lst' v)
+    mblst' <- view boxesViewList >>= \case
+      Just lst -> do
+        lst' <- liftBase $ handleListEvent ev lst
+        v <- ask
+        tellView $ IsMailBoxesView (set boxesViewList (Just lst') v)
+        pure $ Just lst'
+      Nothing -> pure Nothing
     case ev of
-      EvKey key mods -> handleKeyEvent lst' key mods
+      EvKey key mods -> handleKeyEvent mblst' key mods
       _ -> pure ()
   _ -> pure ()
 
-handleKeyEvent :: List ResName MailboxName
+handleKeyEvent :: Maybe (List ResName MailboxName)
   -> Key -> [Modifier] -> EventH MailBoxesView ()
-handleKeyEvent lst key _ = case key of
-  KEnter -> whenJust (getSelected lst) enterMailBoxView
+handleKeyEvent mblst key _ = case key of
+  KEnter -> whenJust mblst $ \lst ->
+    whenJust (getSelected lst) enterMailBoxView
   KChar 'r' -> sendCommand ListMailBoxes
   _ -> pure ()
 
 
 draw :: MailBoxesView -> HMailState -> Widget ResName
-draw (MailBoxesView lst) _ =
-  banner genericHelp
-  <=> renderList renderMBox True lst
+draw v _ = case v ^. boxesViewList of
+  Just lst ->
+    banner genericHelp
+    <=> renderList (renderMBox $ align lst) True lst
+  Nothing -> loadingWidget
   where
-    renderMBox :: Bool -> MailboxName -> Widget ResName
-    renderMBox focused mbox = 
-      ( if focused then withAttr "focused" else id )
-      . border
-      . hCenter
-      . str
-      . align
-      $ mbox
-
-    maxLen = maximum $ length <$> lst ^. listElementsL
+    maxLen lst = maximum $ length <$> lst ^. listElementsL
     
-    align :: String -> String
-    align s = s <> replicate (maxLen - length s) ' '
+    align :: List ResName MailboxName -> String -> String
+    align lst s = s <> replicate (maxLen lst - length s) ' '
+
+renderMBox :: (String -> String) -> Bool -> MailboxName -> Widget ResName
+renderMBox align focused mbox =
+  ( if focused then withAttr "focused" else id )
+  . border
+  . hCenter
+  . str
+  . align
+  $ mbox
+
 
 updateBoxesView :: EventH MailBoxesView ()
 updateBoxesView = do
   lst <- newList . vec <$> get
   v <- ask
-  tellView $ IsMailBoxesView (set boxesViewList lst v)
+  tellView $ IsMailBoxesView (set boxesViewList (Just lst) v)
   where
     newList v = list ResBoxesList v 1
     vec st = V.fromList . M.keys $ st ^. mailBoxes

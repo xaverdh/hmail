@@ -72,7 +72,7 @@ data View =
 
 data MailBoxesView =
   MailBoxesView {
-    _boxesViewList :: List ResName MailboxName
+    _boxesViewList :: Maybe (List ResName MailboxName)
   }
   deriving (Show)
 

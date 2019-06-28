@@ -34,14 +34,9 @@ enterMailBoxView name =
 
 enterBoxesView :: EventH v ()
 enterBoxesView = do
-  vec <- use $ mailBoxes . to (V.fromList . M.keys)
-  tellView $ IsMailBoxesView ( MailBoxesView (newList vec) )
+  tellView $ IsMailBoxesView ( MailBoxesView Nothing )
   -- order matters here
   sendCommand $ ListMailBoxes
-  where
-    newList :: V.Vector MailboxName -> List ResName MailboxName
-    newList vec = list ResBoxesList vec 3
-
 
 enterMailView :: MailboxName -> UID -> EventH v ()
 enterMailView mbox uid = do
