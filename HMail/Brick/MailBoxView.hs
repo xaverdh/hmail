@@ -37,7 +37,7 @@ import qualified Data.Vector as V
 import qualified Data.Map.Lazy as M
 
 
-handleEvent :: BrickEvent ResName e -> EventH MailBoxView ()
+handleEvent :: BrickEv e -> EventH MailBoxView ()
 handleEvent = \case
   VtyEvent ev -> do
     lst <- view boxViewList

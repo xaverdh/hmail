@@ -30,7 +30,7 @@ import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 
 
-handleEvent :: BrickEvent ResName e -> EventH MailView ()
+handleEvent :: BrickEv e -> EventH MailView ()
 handleEvent = \case
   VtyEvent ev -> case ev of
     EvKey key mods -> handleKeyEvent key mods

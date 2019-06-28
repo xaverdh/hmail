@@ -130,8 +130,6 @@ data ResName =
   | ResPrompt
   deriving (Eq,Ord,Show)
 
-type BrickEv = BrickEvent ResName
-
 makeLenses ''Init
 makeLenses ''MailBox
 makeLenses ''MailMeta

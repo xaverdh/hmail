@@ -2,6 +2,7 @@
 module HMail.Brick.EventH (
   EventH(..)
 , EventF
+, BrickEv
 , finaliseEventF
 , withEventH
 , transformEventH
@@ -24,6 +25,8 @@ import Data.Bifunctor
 import Data.Maybe
 import Data.Monoid (Last(..))
 
+type BrickEv = BrickEvent ResName
+
 newtype EventH v a = EventH {
     extractEventH :: RWST v (Last View) HMailState (EventM ResName) a
   }
@@ -35,6 +38,7 @@ newtype EventH v a = EventH {
     , MonadState HMailState
     , MonadReader v
     , MonadWriter (Last View) )
+
 
 type EventF v = EventH v (Next (Maybe (HMailState,View)))
 
@@ -64,7 +68,7 @@ injectEventH = transformEventH . const
 continueEventF :: EventF v
 continueEventF = liftBase $ continue Nothing
 
-resizeOrQuitEventF :: BrickEvent ResName e -> EventF v
+resizeOrQuitEventF :: BrickEv e -> EventF v
 resizeOrQuitEventF ev = liftBase $ resizeOrQuit Nothing ev
 
 haltEventF :: EventF v

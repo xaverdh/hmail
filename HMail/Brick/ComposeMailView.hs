@@ -7,7 +7,7 @@ import HMail.Smtp
 
 import qualified Network.Mail.Mime as Mime
 
-handleEvent :: ??? -> BrickEvent ResName e -> EventH ()
+handleEvent :: ??? -> BrickEv e -> EventH ComposeMailView ()
 handleEvent ??? = 
 
 draw :: ??? -> HMailState -> Widget ResName

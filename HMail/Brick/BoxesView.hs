@@ -30,7 +30,7 @@ import Control.Monad.Extra
 import Control.Monad.RWS
 
 
-handleEvent :: BrickEvent ResName e -> EventH MailBoxesView ()
+handleEvent :: BrickEv e -> EventH MailBoxesView ()
 handleEvent = \case
   VtyEvent ev -> do
     lst <- view boxesViewList
