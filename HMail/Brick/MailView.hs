@@ -9,6 +9,7 @@ import HMail.Brick.EventH
 import HMail.State
 import HMail.ImapMail
 import HMail.Header
+import HMail.Brick.Widgets
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner
@@ -99,9 +100,6 @@ draw (MailView mbox uid fullHdr) st =
     important :: T.Text -> a -> Bool
     important key _ = key `elem`
       [ "Date", "From", "Subject", "To", "User-Agent" ]
-    
-    loadingWidget = center . border $ txtWrap "LOADING..."
-    errorWidget = center . border $ txtWrap "an ERROR ocurred – sorry"
     
 
 mailViewHelp :: [String]        
