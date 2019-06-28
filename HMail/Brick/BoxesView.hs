@@ -7,7 +7,6 @@ module HMail.Brick.BoxesView (
 
 import HMail.Types
 import HMail.Brick.EventH
-import HMail.View
 import HMail.Brick.Util
 import HMail.Brick.ViewSwitching
 import HMail.Brick.Banner

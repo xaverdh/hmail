@@ -3,7 +3,6 @@ module HMail.Brick.ViewSwitching where
 
 import HMail.Types
 import HMail.Brick.EventH
-import HMail.View
 import HMail.Header
 import HMail.ImapMail
 import HMail.Brick.Util

@@ -4,6 +4,7 @@ module HMail.Brick.EventH (
 , EventF
 , BrickEv
 , finaliseEventF
+, tellView
 , withEventH
 , transformEventH
 , injectEventH
@@ -53,6 +54,8 @@ finaliseEventF f v s = do
   pure $ fromMaybe (s',defaultView lv) <$> next
   where defaultView lv = fromMaybe v $ getLast lv 
 
+tellView :: View -> EventH v ()
+tellView = tell . Last . Just
 
 withEventH :: (u -> HMailState -> (v, HMailState))
   -> EventH v a

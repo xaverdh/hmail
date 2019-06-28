@@ -6,7 +6,6 @@ module HMail.Brick.MailView (
 
 import HMail.Types
 import HMail.Brick.EventH
-import HMail.View
 import HMail.State
 import HMail.ImapMail
 import HMail.Header
