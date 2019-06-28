@@ -79,7 +79,7 @@ data MailBoxesView =
 data MailBoxView =
   MailBoxView {
     _boxViewName :: MailboxName
-  , _boxViewList :: List ResName (MailMeta,Header)
+  , _boxViewList :: Maybe (List ResName (MailMeta,Header))
   }
   deriving (Show)
 
